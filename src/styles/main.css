@@ -1,0 +1,312 @@
+body { margin:0; font-family:sans-serif; overflow:hidden; }
+
+#toolbar {
+  background: #f2f2f2;
+  border-bottom:1px solid #ccc;
+  padding:8px;
+  display:flex;
+  gap:6px;
+  user-select:none;
+}
+
+#toolbar button {
+  padding:6px 12px;
+  cursor:pointer;
+}
+
+#flowchart {
+  width:100%;
+  height:100vh;
+  background-color:#fafafa;
+  background-image: linear-gradient(to right, #ddd 1px, transparent 1px),
+                    linear-gradient(to bottom, #ddd 1px, transparent 1px);
+  background-size:20px 20px;
+  cursor:default;
+  user-select:none;
+}
+
+.node { cursor:move; }
+
+.node rect {  stroke:#333; stroke-width:1.5; rx:8; ry:8; }
+
+.node text { pointer-events:none; font-size:12px; dominant-baseline:middle; text-anchor:middle; }
+
+/* Ports initially hidden */
+.port {
+  fill:#333;
+  stroke:#000;
+  stroke-width:1;
+  cursor:crosshair;
+  opacity:0;
+  transition: opacity 0.2s;
+}
+
+/* Show ports on node hover */
+.node:hover .port { opacity:1; }
+
+.edge { stroke-linejoin:round; }
+
+.temp-edge { stroke-dasharray:4 2; stroke:#f39c12; stroke-width:2; }
+
+
+.edge { stroke:#333; transition: stroke 120ms, stroke-width 120ms; }
+.edge-hover { stroke:#1abc9c; stroke-width:3; }
+.edge-selected { stroke:#e67e22; stroke-width:3; }
+.edge-label { font-family: sans-serif; fill:#222; pointer-events:none; }
+.bend-handle { fill:#f39c12; stroke:#fff; stroke-width:1; cursor:move; }
+
+
+.node-rect {
+  stroke: #333;
+  stroke-width: 1;
+  cursor: grab;
+}
+
+.node:hover .node-rect {
+  stroke: #0080ff;
+}
+
+/* single or multi-selected node */
+.node-rect.selected,
+.node-rect.multi-selected {
+  stroke: #ff8800;
+  stroke-width: 2.5;
+}
+
+.selection-rect {
+  fill: rgba(0,128,255,0.2);
+  stroke: #0080ff;
+  stroke-dasharray: 4 2;
+}
+
+#contextMenu {
+  font-size: 13px;
+  border-radius: 3px;
+  user-select: none;
+}
+
+
+#contextMenu div {
+  font-size: 13px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+#contextMenu div:hover {
+  background-color: #f0f0f0;
+}
+
+.selection-rect {
+  fill: rgba(0,128,255,0.15);
+  stroke: #0080ff;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 2;
+  pointer-events: none;
+}
+
+.select-box {
+  fill: rgba(0, 128, 255, 0.18);
+  stroke: #0080ff;
+  stroke-width: 1.2;
+  stroke-dasharray: 4 2;
+  pointer-events: none;
+}
+
+/* ===================== */
+/* Animated Alignment Guides */
+/* ===================== */
+.guide-line {
+  stroke: #00aaff;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 2;
+  pointer-events: none;
+  opacity: 0;                     /* start invisible */
+  transition: opacity 0.15s ease; /* smooth fade in/out */
+}
+
+.guide-line.visible {
+  opacity: 1;                     /* fade in */
+}
+
+.guide-line.fade-out {
+  opacity: 0;                     /* fade out */
+  transition: opacity 0.3s ease;  /* slower fade-out */
+}
+
+/* ===================== */
+/* Distance Hint Labels  */
+/* ===================== */
+.distance-label {
+  fill: #007bff;
+  font-size: 12px;
+  font-family: sans-serif;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.distance-label.visible {
+  opacity: 1;
+}
+
+.distance-line {
+  stroke: #007bff;
+  stroke-width: 1;
+  stroke-dasharray: 2 2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.distance-line.visible {
+  opacity: 0.6;
+}
+
+/* ======================================= */
+/* Magnetic port + tooltip styling */
+/* ======================================= */
+.port.magnet-highlight {
+  fill: #00aaff;
+  stroke: #0077ff;
+  stroke-width: 2;
+  opacity: 1 !important;
+  transition: fill 0.1s ease, r 0.15s ease;
+  r: 8;
+}
+
+.port-tooltip {
+  position: fixed;
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10000;
+}
+
+.port-tooltip[style*="display: block"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* ======================================= */
+/* Magnetic port + tooltip styling */
+/* ======================================= */
+.port.magnet-highlight {
+  fill: #00aaff;
+  stroke: #0077ff;
+  stroke-width: 2;
+  opacity: 1 !important;
+  transition: fill 0.1s ease, r 0.15s ease;
+  r: 8;
+}
+
+.port-tooltip {
+  position: fixed;
+  background: rgba(20, 20, 20, 0.85);
+  color: #fff;
+  font-size: 12px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10000;
+}
+
+.port-tooltip[style*="display: block"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Highlight glowing edge on hover */
+.edge.edge-highlight {
+  stroke: #ff9800;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px rgba(255, 165, 0, 0.8));
+}
+
+/* Edge hover tooltip styling */
+.edge-tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  white-space: pre;
+  font-family: monospace;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 10000;
+  transition: opacity 0.15s ease;
+}
+
+/* Edge highlight when selected */
+.edge.selected,
+.edge.edge-highlight {
+  stroke: #ff8800;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px rgba(255, 165, 0, 0.8));
+  cursor: pointer;
+}
+
+#minimap svg * {
+  transition: all 0.25s ease-out;
+}
+
+/* 🌟 Glow effect for hover or selection */
+.hover-glow {
+  filter: drop-shadow(0 0 5px rgba(0, 150, 255, 0.8));
+}
+
+#minimap .hover-glow {
+  filter: drop-shadow(0 0 2px rgba(0, 150, 255, 0.6));
+}
+
+#minimap .selected {
+  stroke: #00aaff !important;
+  stroke-width: 1.5 !important;
+}
+
+#minimap svg * {
+  transition: all 0.25s ease-out;
+}
+
+.select-box {
+  fill: rgba(0,128,255,0.15);
+  stroke: #0080ff;
+  stroke-dasharray: 4 2;
+  pointer-events: none;
+}
+
+.hover-glow {
+  filter: drop-shadow(0 0 6px rgba(0,150,255,0.8));
+}
+
+#minimap .hover-glow {
+  filter: drop-shadow(0 0 3px rgba(0,150,255,0.6));
+}
+
+#minimap .selected {
+  stroke: #00aaff !important;
+  stroke-width: 1.5 !important;
+}
+
+#minimap svg * {
+  transition: all 0.25s ease-out;
+}
+
+.select-box {
+  fill: rgba(0, 128, 255, 0.15);
+  stroke: #0080ff;
+  stroke-width: 1;
+  stroke-dasharray: 4 2;
+  pointer-events: none;
+  transition: width 0.05s linear, height 0.05s linear;
+}
+

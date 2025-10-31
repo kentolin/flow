@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flowchart Editor</title>
+  <link rel="stylesheet" href="src/styles/main.css" />
+</head>
+<body>
+  <div id="toolbar">
+    <button data-type="start">Start</button>
+    <button data-type="process">Process</button>
+    <button data-type="decision">Decision</button>
+    <button data-type="input">Input</button>
+    <button data-type="output">Output</button>
+    <button id="exportBtn">Export JSON</button>
+  </div>
+
+  <svg id="flowchart">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+              refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+      </marker>
+    </defs>
+    <g id="viewport"></g>
+    <g id="guides"></g> <!-- ✅ For temporary alignment guides -->
+    <g id="distance-hints"></g> <!-- ✅ for distance labels -->
+
+  </svg>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
