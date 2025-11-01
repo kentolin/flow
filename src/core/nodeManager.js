@@ -519,5 +519,6 @@ export const nodeManager = {
     this.renderAll();
     edgeManager.redrawAll();
     document.dispatchEvent(new Event('flowchart:changed'));
+
   }
 };
