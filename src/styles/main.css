@@ -310,3 +310,36 @@ body { margin:0; font-family:sans-serif; overflow:hidden; }
   transition: width 0.05s linear, height 0.05s linear;
 }
 
+.node {
+  transition: transform 0.1s ease-out;
+  will-change: transform;
+}
+
+.node rect,
+.node text,
+.port {
+  transition: all 0.12s ease-out;
+  will-change: transform, width, height;
+}
+
+
+/* === Edges === */
+.edge {
+  stroke: #666;
+  stroke-width: 2;
+  fill: none;
+  transition: stroke 0.15s ease, stroke-width 0.15s ease;
+  pointer-events: stroke;
+}
+
+.edge.selected {
+  stroke: #ff8800;
+  stroke-width: 3;
+  filter: drop-shadow(0 0 4px rgba(255, 136, 0, 0.6));
+}
+
+.edge:hover {
+  stroke: #00aaff;
+  stroke-width: 3;
+  transition: stroke 0.15s ease;
+}

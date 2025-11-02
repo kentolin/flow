@@ -351,6 +351,91 @@ window.addEventListener('DOMContentLoaded', () => {
 
       return;
     }
+
+    // -------------------------------
+    // ⬅️➡️⬆️⬇️ Move selected nodes (Soft Pull Animation)
+    // -------------------------------
+    const arrowKeys = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+    if (arrowKeys.includes(e.key)) {
+      e.preventDefault();
+
+      const MOVE_STEP = e.shiftKey ? 50 : 20; // 🔹 Shift = faster move
+      if (selectedIds.size === 0) return;
+
+      history.save();
+
+      const dx =
+        e.key === "ArrowLeft" ? -MOVE_STEP :
+        e.key === "ArrowRight" ? MOVE_STEP : 0;
+      const dy =
+        e.key === "ArrowUp" ? -MOVE_STEP :
+        e.key === "ArrowDown" ? MOVE_STEP : 0;
+
+      selectedIds.forEach(id => {
+        const node = nodeManager.getNode(id);
+        if (!node) return;
+
+        // target position
+        const targetX = node.x + dx;
+        const targetY = node.y + dy;
+
+        const nodeEl = document.querySelector(`.node[data-id="${id}"]`);
+        if (!nodeEl) return;
+
+        // --- smooth interpolation ---
+        const startX = node.x;
+        const startY = node.y;
+        const startTime = performance.now();
+        const duration = 150; // ms
+
+        const animate = (time) => {
+          const t = Math.min((time - startTime) / duration, 1);
+          const ease = t * (2 - t); // ease-out cubic
+          const newX = startX + (targetX - startX) * ease;
+          const newY = startY + (targetY - startY) * ease;
+
+          nodeEl.setAttribute("transform", `translate(${newX},${newY})`);
+
+          if (t < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // finalize
+            node.x = targetX;
+            node.y = targetY;
+            nodeEl.setAttribute("transform", `translate(${node.x},${node.y})`);
+            edgeManager.redrawAll();
+          }
+        };
+        requestAnimationFrame(animate);
+      });
+
+      nodeManager.updateSelectionStyles();
+      showToast(`Moved ${selectedIds.size} node(s)`, "info");
+      return;
+    }
+
+    // -------------------------------
+    // ⤺ Undo / ⤼ Redo
+    // -------------------------------
+    if (e.ctrlKey && e.key.toLowerCase() === "z") {
+      history.undo();
+      nodeManager.renderAll();
+      edgeManager.redrawAll();
+      showToast("⤺ Undo", "warn");
+      e.preventDefault();
+      return;
+    }
+
+    if (e.ctrlKey && e.key.toLowerCase() === "y") {
+      history.redo();
+      nodeManager.renderAll();
+      edgeManager.redrawAll();
+      showToast("⤼ Redo", "warn");
+      e.preventDefault();
+      return;
+    }
+
+
   });
 
   

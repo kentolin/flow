@@ -29,17 +29,19 @@ export const edgeManager = {
 
   /**
    * Add a new edge between nodes and ports.
-   * @param {string} fromId
-   * @param {string} toId
-   * @param {string} fromPort
-   * @param {string} toPort
    */
   addEdge(fromId, toId, fromPort = 'right', toPort = 'left') {
     // Prevent duplicates
-    if (state.edges.find(e =>
-      e.from === fromId && e.to === toId &&
-      e.fromPort === fromPort && e.toPort === toPort
-    )) return;
+    if (
+      state.edges.find(
+        (e) =>
+          e.from === fromId &&
+          e.to === toId &&
+          e.fromPort === fromPort &&
+          e.toPort === toPort
+      )
+    )
+      return;
 
     history.save();
     state.edges.push({
@@ -47,7 +49,7 @@ export const edgeManager = {
       to: toId,
       fromPort,
       toPort,
-      color: '#666'
+      color: '#666',
     });
     this.renderEdge(fromId, toId, fromPort, toPort);
   },
@@ -67,17 +69,26 @@ export const edgeManager = {
     if (!start || !end) return;
 
     const points = this.routeEdge(start, end);
-    const edgeObj = state.edges.find(e =>
-      e.from === fromId && e.to === toId &&
-      e.fromPort === fromPort && e.toPort === toPort
+    const edgeObj = state.edges.find(
+      (e) =>
+        e.from === fromId &&
+        e.to === toId &&
+        e.fromPort === fromPort &&
+        e.toPort === toPort
     );
 
-    const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    const polyline = document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      'polyline'
+    );
     polyline.setAttribute('data-from', fromId);
     polyline.setAttribute('data-to', toId);
     polyline.setAttribute('data-from-port', fromPort);
     polyline.setAttribute('data-to-port', toPort);
-    polyline.setAttribute('points', points.map(p => `${p.x},${p.y}`).join(' '));
+    polyline.setAttribute(
+      'points',
+      points.map((p) => `${p.x},${p.y}`).join(' ')
+    );
     polyline.style.stroke = edgeObj?.color || '#666'; // inline style wins over CSS
     polyline.style.strokeWidth = 2;
     polyline.setAttribute('fill', 'none');
@@ -113,12 +124,12 @@ export const edgeManager = {
         to: toId,
         fromPort,
         toPort,
-        el: polyline
+        el: polyline,
       };
       const items = [
         { label: 'Delete Edge', action: () => this.removeEdge(fromId, toId) },
         { label: 'Reverse Direction', action: () => this.reverseEdge(edgeData) },
-        { label: 'Change Color', action: () => this.changeEdgeColor(edgeData) }
+        { label: 'Change Color', action: () => this.changeEdgeColor(edgeData) },
       ];
       contextMenu.show(e.clientX, e.clientY, items);
     });
@@ -137,14 +148,14 @@ export const edgeManager = {
 
   /** Update selection visuals for edges */
   updateSelectionStyles() {
-    document.querySelectorAll('.edge').forEach(edge => {
+    document.querySelectorAll('.edge').forEach((edge) => {
       const key = this.edgeKey(edge);
       if (this.selectedEdges.has(key)) {
         edge.style.stroke = '#ff8800';
         edge.style.strokeWidth = 3;
         edge.classList.add('selected');
       } else {
-        const eObj = state.edges.find(obj => this.edgeKey(obj) === key);
+        const eObj = state.edges.find((obj) => this.edgeKey(obj) === key);
         edge.style.stroke = eObj?.color || '#666';
         edge.style.strokeWidth = 2;
         edge.classList.remove('selected');
@@ -156,9 +167,12 @@ export const edgeManager = {
   changeEdgeColor(edgeData) {
     const color = prompt('Enter new edge color (CSS):', '#00aaff');
     if (!color) return;
-    const edge = state.edges.find(e =>
-      e.from === edgeData.from && e.to === edgeData.to &&
-      e.fromPort === edgeData.fromPort && e.toPort === edgeData.toPort
+    const edge = state.edges.find(
+      (e) =>
+        e.from === edgeData.from &&
+        e.to === edgeData.to &&
+        e.fromPort === edgeData.fromPort &&
+        e.toPort === edgeData.toPort
     );
     if (!edge) return;
 
@@ -169,9 +183,12 @@ export const edgeManager = {
   /** Reverse edge direction */
   reverseEdge(edgeData) {
     history.save();
-    const edge = state.edges.find(e =>
-      e.from === edgeData.from && e.to === edgeData.to &&
-      e.fromPort === edgeData.fromPort && e.toPort === edgeData.toPort
+    const edge = state.edges.find(
+      (e) =>
+        e.from === edgeData.from &&
+        e.to === edgeData.to &&
+        e.fromPort === edgeData.fromPort &&
+        e.toPort === edgeData.toPort
     );
     if (!edge) return;
     [edge.from, edge.to] = [edge.to, edge.from];
@@ -183,7 +200,7 @@ export const edgeManager = {
   redrawAll() {
     const svg = document.getElementById('flowchart');
     const viewport = svg.querySelector('#viewport');
-    viewport.querySelectorAll('.edge').forEach(l => l.remove());
+    viewport.querySelectorAll('.edge').forEach((l) => l.remove());
     for (const e of state.edges) {
       this.renderEdge(e.from, e.to, e.fromPort, e.toPort);
     }
@@ -200,27 +217,70 @@ export const edgeManager = {
     return points;
   },
 
+  /**
+   * ✅ NEW: Smoothly update a specific edge path when nodes move.
+   * This avoids full redraws and improves performance.
+   */
+    updateEdgePath(edgeEl) {
+    const fromId = edgeEl.dataset.from;
+    const toId = edgeEl.dataset.to;
+    const fromPort = edgeEl.dataset.fromPort;
+    const toPort = edgeEl.dataset.toPort;
+
+    const fromNode = nodeManager.getNode(fromId);
+    const toNode = nodeManager.getNode(toId);
+    if (!fromNode || !toNode) return;
+
+    const start = nodeManager.getPortCoords(fromNode, fromPort);
+    const end = nodeManager.getPortCoords(toNode, toPort);
+    if (!start || !end) return;
+
+    const newPointsArr = this.routeEdge(start, end);
+    const newPoints = newPointsArr.map((p) => `${p.x},${p.y}`).join(' ');
+    const oldPoints = edgeEl.getAttribute('points');
+
+    if (oldPoints === newPoints) return;
+
+    // ✅ animate between old and new point positions
+    const oldCoords = oldPoints.split(' ').map(s => {
+      const [x, y] = s.split(',').map(Number);
+      return { x, y };
+    });
+
+    const duration = 80; // ms
+    const startTime = performance.now();
+
+    const animate = (now) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const ease = t * (2 - t); // ease-out
+      const interpolated = oldCoords.map((p, i) => {
+        const nx = p.x + (newPointsArr[i].x - p.x) * ease;
+        const ny = p.y + (newPointsArr[i].y - p.y) * ease;
+        return `${nx},${ny}`;
+      });
+      edgeEl.setAttribute('points', interpolated.join(' '));
+      if (t < 1) requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  },
+
   /** Remove specific edge */
   removeEdge(fromId, toId) {
     history.save();
-    state.edges = state.edges.filter(e => !(e.from === fromId && e.to === toId));
+    state.edges = state.edges.filter(
+      (e) => !(e.from === fromId && e.to === toId)
+    );
     this.redrawAll();
   },
 
-  /**
-   * Find the nearest port on a node to a given point (used when dropping edges on body).
-   * @param {Object} node
-   * @param {{x: number, y: number}} targetPoint
-   * @returns {{x: number, y: number, port: string}|null}
-   */
+  /** Find nearest port to point (used when dropping edge on node) */
   nearestPort(node, targetPoint) {
     if (!node || !targetPoint) return null;
-
     const ports = ['top', 'bottom', 'left', 'right'];
     let closest = null;
     let minDist = Infinity;
-
-    ports.forEach(port => {
+    ports.forEach((port) => {
       const coords = nodeManager.getPortCoords(node, port);
       const dx = coords.x - targetPoint.x;
       const dy = coords.y - targetPoint.y;
@@ -230,7 +290,6 @@ export const edgeManager = {
         closest = { ...coords, port };
       }
     });
-
     return closest;
   },
 
@@ -241,7 +300,9 @@ export const edgeManager = {
     const toNode = nodeManager.getNode(edge.dataset.to);
     const fp = edge.dataset.fromPort;
     const tp = edge.dataset.toPort;
-    const text = `From: ${fromNode?.type || 'Unknown'} (${fp}) → To: ${toNode?.type || 'Unknown'} (${tp})`;
+    const text = `From: ${fromNode?.type || 'Unknown'} (${fp}) → To: ${
+      toNode?.type || 'Unknown'
+    } (${tp})`;
     this.tooltip.style.display = 'block';
     this.tooltip.style.opacity = '1';
     this.tooltip.textContent = text;
@@ -260,5 +321,5 @@ export const edgeManager = {
     if (!this.tooltip) return;
     this.tooltip.style.left = `${x + 10}px`;
     this.tooltip.style.top = `${y + 10}px`;
-  }
+  },
 };

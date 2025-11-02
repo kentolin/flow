@@ -150,95 +150,63 @@ export const nodeManager = {
 
       const hintLayer = document.getElementById('distance-hints');
 
-      const onMouseMove = (eMove) => {
+     const onMouseMove = (eMove) => {
         if (!dragging) return;
+
         const movePt = this.svgPoint(svg, eMove.clientX, eMove.clientY);
         const snap = 20;
 
-        // move each dragged node
         draggedNodes.forEach(id => {
           const n = this.getNode(id);
           const dx = offsets[id].dx;
           const dy = offsets[id].dy;
 
-          n.x = Math.round((movePt.x - dx) / snap) * snap;
-          n.y = Math.round((movePt.y - dy) / snap) * snap;
+          // compute target position (snapped)
+          const targetX = Math.round((movePt.x - dx) / snap) * snap;
+          const targetY = Math.round((movePt.y - dy) / snap) * snap;
 
           const nodeG = document.querySelector(`.node[data-id="${id}"]`);
-          if (nodeG) nodeG.setAttribute('transform', `translate(${n.x},${n.y})`);
+          if (!nodeG) return;
+
+          // --- Smooth easing with interpolation ---
+          const startX = n.x;
+          const startY = n.y;
+          const startTime = performance.now();
+          const duration = 100; // ~100ms smooth slide
+
+          const animate = (time) => {
+            const t = Math.min((time - startTime) / duration, 1);
+            const ease = t * (2 - t); // ease-out cubic
+            const newX = startX + (targetX - startX) * ease;
+            const newY = startY + (targetY - startY) * ease;
+
+            nodeG.setAttribute('transform', `translate(${newX},${newY})`);
+
+            if (t < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              n.x = targetX;
+              n.y = targetY;
+              nodeG.setAttribute('transform', `translate(${n.x},${n.y})`);
+              //edgeManager.redrawAll();
+              document.querySelectorAll('.edge').forEach(edge => edgeManager.updateEdgePath(edge));
+            }
+          };
+
+          requestAnimationFrame(animate);
         });
 
-        // distance hints + snap-to-distance (keeps existing logic)
-        hintLayer.innerHTML = '';
-        draggedNodes.forEach(id => {
-          const n = this.getNode(id);
-          if (!n) return;
-
-          let closestH = null, closestV = null;
-          let closestHVal = Infinity, closestVVal = Infinity;
-
-          state.nodes.forEach(other => {
-            if (other.id === n.id || draggedNodes.has(other.id)) return;
-
-            const rightGap = other.x - (n.x + n.width);
-            const leftGap = n.x - (other.x + other.width);
-            const bottomGap = other.y - (n.y + n.height);
-            const topGap = n.y - (other.y + other.height);
-
-            const hGap = Math.min(Math.abs(rightGap), Math.abs(leftGap));
-            const vGap = Math.min(Math.abs(bottomGap), Math.abs(topGap));
-
-            if (hGap < closestHVal && hGap > 0 && hGap < 200) {
-              closestHVal = hGap;
-              closestH = { n, other, value: hGap, side: rightGap < leftGap ? 'right' : 'left' };
-            }
-            if (vGap < closestVVal && vGap > 0 && vGap < 200) {
-              closestVVal = vGap;
-              closestV = { n, other, value: vGap, side: bottomGap < topGap ? 'bottom' : 'top' };
-            }
-          });
-
-          // snap to preferred distances
-          if (closestH) {
-            for (const ideal of SNAP_DISTANCES) {
-              if (Math.abs(closestH.value - ideal) < SNAP_THRESHOLD) {
-                const offset = closestH.value - ideal;
-                if (closestH.side === 'right') n.x -= offset;
-                else n.x += offset;
-                n.x = Math.round(n.x / 10) * 10;
-                closestH.value = ideal;
-                break;
-              }
-            }
-          }
-
-          if (closestV) {
-            for (const ideal of SNAP_DISTANCES) {
-              if (Math.abs(closestV.value - ideal) < SNAP_THRESHOLD) {
-                const offset = closestV.value - ideal;
-                if (closestV.side === 'bottom') n.y -= offset;
-                else n.y += offset;
-                n.y = Math.round(n.y / 10) * 10;
-                closestV.value = ideal;
-                break;
-              }
-            }
-          }
-
-          // update transform for dragged node (after snap)
-          const nodeG = document.querySelector(`.node[data-id="${n.id}"]`);
-          if (nodeG) nodeG.setAttribute('transform', `translate(${n.x},${n.y})`);
-        });
-
-        // schedule redraw of edges (debounced)
         scheduleRedraw();
       };
+
+
 
       const onMouseUp = () => {
         if (!dragging) return;
         dragging = false;
         hintLayer.innerHTML = '';
-        edgeManager.redrawAll(); // ensure final accurate redraw
+       // edgeManager.redrawAll(); // ensure final accurate redraw
+       document.querySelectorAll('.edge').forEach(edge => edgeManager.updateEdgePath(edge));
         document.dispatchEvent(new Event('flowchart:changed'));
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
@@ -267,60 +235,92 @@ export const nodeManager = {
           const dx = (eMove.clientX - startMouse.x) * (svg.viewBox.baseVal.width / svgRect.width);
           const dy = (eMove.clientY - startMouse.y) * (svg.viewBox.baseVal.height / svgRect.height);
 
-          // right / bottom expand
-          if (handleName.includes('right')) node.width = Math.max(MIN_WIDTH, startSize.w + dx);
-          if (handleName.includes('bottom')) node.height = Math.max(MIN_HEIGHT, startSize.h + dy);
+          // 🔹 Compute target position & size
+          const newSize = { w: node.width, h: node.height };
+          const newPos = { x: node.x, y: node.y };
 
-          // left/top modify position + size
+          // right / bottom expand
+          if (handleName.includes('right')) newSize.w = Math.max(MIN_WIDTH, startSize.w + dx);
+          if (handleName.includes('bottom')) newSize.h = Math.max(MIN_HEIGHT, startSize.h + dy);
+
+          // left / top adjust
           if (handleName.includes('left')) {
-            const newWidth = Math.max(MIN_WIDTH, startSize.w - dx);
-            node.x = startPos.x + (startSize.w - newWidth);
-            node.width = newWidth;
+            const nextW = Math.max(MIN_WIDTH, startSize.w - dx);
+            newPos.x = startPos.x + (startSize.w - nextW);
+            newSize.w = nextW;
           }
           if (handleName.includes('top')) {
-            const newHeight = Math.max(MIN_HEIGHT, startSize.h - dy);
-            node.y = startPos.y + (startSize.h - newHeight);
-            node.height = newHeight;
+            const nextH = Math.max(MIN_HEIGHT, startSize.h - dy);
+            newPos.y = startPos.y + (startSize.h - nextH);
+            newSize.h = nextH;
           }
 
-          // update visuals
-          rect.setAttribute('width', node.width);
-          rect.setAttribute('height', node.height);
-          text.setAttribute('x', node.width / 2);
-          text.setAttribute('y', node.height / 2);
+          // 🔹 Animate towards new size and position
+          const startW = node.width, startH = node.height;
+          const startX = node.x, startY = node.y;
+          const targetW = newSize.w, targetH = newSize.h;
+          const targetX = newPos.x, targetY = newPos.y;
+          const startTime = performance.now();
+          const duration = 120; // ms
 
-          // update ports positions
-          g.querySelectorAll('.port').forEach(p => {
-            switch (p.dataset.port) {
-              case 'top': p.setAttribute('cx', node.width / 2); p.setAttribute('cy', 0); break;
-              case 'bottom': p.setAttribute('cx', node.width / 2); p.setAttribute('cy', node.height); break;
-              case 'left': p.setAttribute('cx', 0); p.setAttribute('cy', node.height / 2); break;
-              case 'right': p.setAttribute('cx', node.width); p.setAttribute('cy', node.height / 2); break;
+          const animate = (time) => {
+            const t = Math.min((time - startTime) / duration, 1);
+            const ease = t * (2 - t); // ease-out
+            const currW = startW + (targetW - startW) * ease;
+            const currH = startH + (targetH - startH) * ease;
+            const currX = startX + (targetX - startX) * ease;
+            const currY = startY + (targetY - startY) * ease;
+
+            rect.setAttribute('width', currW);
+            rect.setAttribute('height', currH);
+            text.setAttribute('x', currW / 2);
+            text.setAttribute('y', currH / 2);
+
+            // update ports dynamically
+            g.querySelectorAll('.port').forEach(p => {
+              switch (p.dataset.port) {
+                case 'top': p.setAttribute('cx', currW / 2); p.setAttribute('cy', 0); break;
+                case 'bottom': p.setAttribute('cx', currW / 2); p.setAttribute('cy', currH); break;
+                case 'left': p.setAttribute('cx', 0); p.setAttribute('cy', currH / 2); break;
+                case 'right': p.setAttribute('cx', currW); p.setAttribute('cy', currH / 2); break;
+              }
+            });
+
+            // resize handles reposition
+            g.querySelectorAll('.resize-handle').forEach(hEl => {
+              const pos = {
+                'top-left': [0, 0],
+                'top-right': [currW, 0],
+                'bottom-left': [0, currH],
+                'bottom-right': [currW, currH]
+              }[hEl.dataset.handle];
+              hEl.setAttribute('x', pos[0] - HANDLE_SIZE / 2);
+              hEl.setAttribute('y', pos[1] - HANDLE_SIZE / 2);
+            });
+
+            g.setAttribute('transform', `translate(${currX},${currY})`);
+
+            if (t < 1) {
+              requestAnimationFrame(animate);
+            } else {
+              // finalize node data
+              node.width = targetW;
+              node.height = targetH;
+              node.x = targetX;
+              node.y = targetY;
+              scheduleRedraw();
             }
-          });
+          };
 
-          // update handles position
-          g.querySelectorAll('.resize-handle').forEach(hEl => {
-            const pos = {
-              'top-left': [0, 0],
-              'top-right': [node.width, 0],
-              'bottom-left': [0, node.height],
-              'bottom-right': [node.width, node.height]
-            }[hEl.dataset.handle];
-            hEl.setAttribute('x', pos[0] - HANDLE_SIZE / 2);
-            hEl.setAttribute('y', pos[1] - HANDLE_SIZE / 2);
-          });
-
-          g.setAttribute('transform', `translate(${node.x},${node.y})`);
-
-          // schedule redraw of edges (debounced)
-          scheduleRedraw();
+          requestAnimationFrame(animate);
         };
+
 
         const onMouseUp = () => {
           window.removeEventListener('mousemove', onMouseMove);
           window.removeEventListener('mouseup', onMouseUp);
-          edgeManager.redrawAll(); // final redraw after resizing
+          //edgeManager.redrawAll(); // final redraw after resizing
+          document.querySelectorAll('.edge').forEach(edge => edgeManager.updateEdgePath(edge));
           document.dispatchEvent(new Event('flowchart:changed'));
         };
 

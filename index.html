@@ -4,8 +4,21 @@
   <meta charset="UTF-8" />
   <title>Flowchart Editor</title>
   <link rel="stylesheet" href="src/styles/main.css" />
+  <link rel="stylesheet" href="src/styles/layout.css" />
 </head>
 <body>
+
+  <!-- ===================== MENU BAR ===================== -->
+  <header id="menu-bar">
+    <nav>
+      <div class="menu-item" data-menu="file">File</div>
+      <div class="menu-item" data-menu="edit">Edit</div>
+      <div class="menu-item" data-menu="view">View</div>
+      <div class="menu-item" data-menu="help">Help</div>
+    </nav>
+  </header>
+
+  <!-- ===================== TOOLBAR (your current one preserved) ===================== -->
   <div id="toolbar">
     <button data-type="start">Start</button>
     <button data-type="process">Process</button>
@@ -15,18 +28,48 @@
     <button id="exportBtn">Export JSON</button>
   </div>
 
-  <svg id="flowchart">
-    <defs>
-      <marker id="arrowhead" markerWidth="10" markerHeight="7" 
-              refX="10" refY="3.5" orient="auto">
-        <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
-      </marker>
-    </defs>
-    <g id="viewport"></g>
-    <g id="guides"></g> <!-- ✅ For temporary alignment guides -->
-    <g id="distance-hints"></g> <!-- ✅ for distance labels -->
+  <!-- ===================== MAIN EDITOR LAYOUT ===================== -->
+  <main id="editor-layout">
+    <!-- Left Panel (new placeholder) -->
+    <aside id="left-panel">
+      <h3>Shapes</h3>
+      <div class="node-template" data-type="rect">⬛ Rectangle</div>
+      <div class="node-template" data-type="circle">⚪ Circle</div>
+      <div class="node-template" data-type="diamond">🔷 Diamond</div>
+    </aside>
 
-  </svg>
+    <!-- Center Canvas (your original SVG fully intact) -->
+    <section id="canvas-container">
+      <svg id="flowchart">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+          </marker>
+        </defs>
+        <g id="viewport"></g>
+        <g id="guides"></g>
+        <g id="distance-hints"></g>
+      </svg>
+    </section>
+
+    <!-- Right Panel (new placeholder for styles/properties) -->
+    <aside id="right-panel">
+      <h3>Properties</h3>
+      <div id="properties">
+        <label>Fill: <input type="color" id="fillColor" /></label>
+        <label>Stroke: <input type="color" id="strokeColor" /></label>
+        <label>Width: <input type="number" id="widthValue" min="20" /></label>
+        <label>Height: <input type="number" id="heightValue" min="20" /></label>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ===================== STATUS BAR ===================== -->
+  <footer id="status-bar">
+    <div id="status-left">Ready</div>
+    <div id="status-center">Zoom: 100%</div>
+    <div id="status-right">X: 0, Y: 0</div>
+  </footer>
 
   <script type="module" src="src/main.js"></script>
 </body>
