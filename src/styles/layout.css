@@ -1,114 +1,146 @@
-/* ============================
-   Layout Styling
-============================ */
+/* ========================================
+🪟 Panels + Editor Layout
+======================================== */
+
 body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #1a1a1a;
-  color: #ddd;
+  background: var(--bg-workbench);
+  font-family: var(--font-ui);
 }
 
-/* Top menu bar */
-#menu-bar {
-  background: #222;
-  border-bottom: 1px solid #333;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-}
-#menu-bar .menu-item {
-  margin-right: 16px;
-  cursor: pointer;
-  color: #aaa;
-}
-#menu-bar .menu-item:hover {
-  color: #fff;
-}
-
-/* Toolbar (uses your existing buttons) */
-#toolbar {
-  background: #1f1f1f;
-  border-bottom: 1px solid #333;
-  padding: 5px 10px;
-  display: flex;
-  gap: 6px;
-}
-#toolbar button {
-  background: #333;
-  color: #eee;
-  border: none;
-  border-radius: 4px;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 13px;
-}
-#toolbar button:hover {
-  background: #555;
-}
-
-/* Main editor layout */
-#editor-layout {
-  flex: 1;
+/* ===============================
+📐 VS Code-style Grid Layout
+=============================== */
+#editor-container {
   display: grid;
-  grid-template-columns: 200px 1fr 250px;
+  grid-template-columns: 240px 6px 1fr 6px 240px;
   grid-template-rows: 1fr;
+  height: calc(100vh - 60px);
+  background: var(--bg-workbench);
+  transition: grid-template-columns 0.35s cubic-bezier(0.25, 0.1, 0.25, 1),
+    background 0.3s ease;
+}
+
+/* Collapsing behavior */
+#editor-container.left-collapsed {
+  grid-template-columns: 0px 6px 1fr 6px 240px;
+}
+
+#editor-container.right-collapsed {
+  grid-template-columns: 240px 6px 1fr 6px 0px;
+}
+
+#editor-container.both-collapsed {
+  grid-template-columns: 0px 6px 1fr 6px 0px;
+}
+
+/* ===============================
+🎨 Panels (Left + Right)
+=============================== */
+.panel {
+  background: var(--bg-panel, #f2f2f2);
+  color: var(--text-main, #222);
   overflow: hidden;
-}
-
-/* Left Panel */
-#left-panel {
-  background: #1e1e1e;
-  border-right: 1px solid #333;
-  padding: 8px;
-  overflow-y: auto;
-}
-.node-template {
-  background: #333;
-  color: #fff;
-  padding: 6px;
-  margin: 4px 0;
-  border-radius: 4px;
-  cursor: grab;
-  text-align: center;
-}
-.node-template:hover {
-  background: #555;
-}
-
-/* Canvas */
-#canvas-container {
-  position: relative;
-  background: #191919;
-}
-#flowchart {
-  width: 100%;
-  height: 100%;
-}
-
-/* Right Panel */
-#right-panel {
-  background: #1e1e1e;
-  border-left: 1px solid #333;
-  padding: 10px;
-  overflow-y: auto;
-}
-#right-panel h3 {
-  margin-top: 0;
-}
-
-/* Status bar */
-#status-bar {
-  background: #222;
-  border-top: 1px solid #333;
-  height: 26px;
   display: flex;
+  flex-direction: column;
+  transition: background 0.3s ease, width 0.3s ease;
+}
+
+#left-panel {
+  border-right: 1px solid var(--border-splitter, #dadada);
+}
+
+#right-panel {
+  border-left: 1px solid var(--border-splitter, #dadada);
+}
+
+/* Header (title area of panels) */
+.panel-header {
+  padding: 8px 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-subtle, #777);
+  border-bottom: 1px solid var(--border-splitter, #dadada);
+  background: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+/* Panel inner content */
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+/* ===============================
+🎨 Editor Area (Main Canvas)
+=============================== */
+#editor-main {
+  position: relative;
+  display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  font-size: 12px;
-  color: #999;
+  padding: 32px 40px;
+  background: var(--bg-workbench);
+  box-sizing: border-box;
+  transition: all 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+#editor-main::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at center,
+    transparent 60%,
+    var(--bg-workbench) 100%
+  );
+  opacity: 0.4;
+}
+
+/* SVG grid canvas */
+#flowchart {
+  width: 92%;
+  height: 92%;
+  border-radius: 2px;
+  border: 1px solid var(--border-splitter);
+  box-shadow: var(--canvas-shadow);
+  --fine-opacity: 1;
+  --main-opacity: 1;
+  background-color: var(--bg-editor);
+
+  background-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, calc(var(--fine-opacity) * 0.03)) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, calc(var(--fine-opacity) * 0.03)) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to right,
+      rgba(0, 0, 0, calc(var(--main-opacity) * 0.04)) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, calc(var(--main-opacity) * 0.04)) 1px,
+      transparent 1px
+    );
+
+  background-size: var(--grid-fine-size) var(--grid-fine-size),
+    var(--grid-fine-size) var(--grid-fine-size),
+    var(--grid-main-size) var(--grid-main-size),
+    var(--grid-main-size) var(--grid-main-size);
+
+  background-position: 0 0, 0 0, 0 0, 0 0;
+  background-repeat: repeat;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 0 10px var(--bg-workbench);
 }

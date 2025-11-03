@@ -1,0 +1,20 @@
+🧰 Phase 4 — Implementation Strategy
+
+We’ll proceed like this:
+
+Order	Task	Description	Outcome
+Step 1	🧱 Layout Skeleton (HTML + CSS Grid/Flex)	Create basic structure for menu, toolbar, panels, status	A working layout with placeholders
+Step 2	🧭 Menu Bar	File menu (New, Save, Load JSON), Edit menu (Undo, Redo)	Real working dropdown
+Step 3	🎨 Left Panel (Node Palette)	Add node templates; drag into canvas to create new nodes	Interactive
+Step 4	⚙️ Right Panel	Click node/edge → show editable properties	Two-way binding to update style live
+Step 5	💾 JSON Import/Export	Save all nodes + edges to JSON and restore	Serialization complete
+Step 6	📊 Status Bar	Show coordinates, zoom %, node count	Responsive bottom bar
+
+💡 Best Practices for Structure
+
+Use events, not direct calls between UI and core logic.
+→ e.g., document.dispatchEvent(new CustomEvent('editor:addNode', {...}))
+
+Core modules remain pure logic — UI modules only manipulate DOM.
+
+No inline styles except dynamic values (like color preview or live update).

@@ -1,0 +1,93 @@
+/* ========================================
+🧭 VS Code–like Horizontal Menu Bar
+======================================== */
+#menubar {
+  display: flex;
+  align-items: center;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--line-slim);
+  color: var(--text-main);
+  user-select: none;
+  height: 28px;
+  line-height: 28px;
+  font-size: 13px;
+  padding: 0 8px;
+  font-family: var(--font-ui);
+  box-shadow: var(--canvas-shadow);
+  z-index: 100;
+}
+
+.menu-item {
+  position: relative;
+  padding: 0 12px;
+  cursor: default;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.menu-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--line-slim);
+  box-shadow: var(--canvas-shadow);
+  min-width: 160px;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.menu-item.open>.menu-dropdown {
+  display: flex;
+}
+
+.menu-dropdown div {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.menu-dropdown div:hover {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.menu-separator {
+  border-top: 1px solid var(--line-slim);
+  margin: 4px 0;
+}
+
+/* Submenu (Theme) */
+.submenu {
+  position: relative;
+  padding-right: 16px;
+}
+
+.submenu::after {
+  content: "▶";
+  position: absolute;
+  right: 8px;
+  opacity: 0.6;
+}
+
+.submenu-dropdown {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  min-width: 140px;
+  background: var(--bg-panel);
+  border: 1px solid var(--line-slim);
+  box-shadow: var(--canvas-shadow);
+  z-index: 250;
+}
+
+.submenu:hover>.submenu-dropdown {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,0 +1,57 @@
+/* ===========================================
+🎨 THEME SYSTEM — Flowchart Editor
+=========================================== */
+
+:root {
+  --font-ui: "Segoe UI", system-ui, sans-serif;
+  --splitter-hover: #52a5f6;
+  --grip-dot: #999;
+  --grip-dot-hover: #ccc;
+  --grip-line-hover: #52a5f6;
+  --grid-line-fine: rgba(0, 0, 0, 0.03);
+  --grid-line-main: rgba(0, 0, 0, 0.04);
+  --grid-fine-size: 8px;
+  --grid-main-size: 32px;
+}
+
+/* -----------------------------
+🌤️ Light Theme
+----------------------------- */
+body.light {
+  --bg-workbench: #f8f8f8;
+  --bg-editor: #ffffff;
+  --bg-panel: #f2f2f2;
+  --bg-statusbar: #f3f3f3;
+  --border-splitter: #dadada;
+  --grid-line: #e5e5e5;
+  --text-subtle: #444;
+  --line-dark: #ccc;
+  --canvas-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  background: var(--bg-workbench);
+  color: var(--text-subtle);
+}
+
+/* -----------------------------
+🌙 Dark Theme
+----------------------------- */
+body.dark {
+  --bg-workbench: #1e1e1e;
+  --bg-editor: #252526;
+  --bg-panel: #2d2d2d;
+  --bg-statusbar: #252526;
+  --border-splitter: #333;
+  --grid-line: #3a3a3a;
+  --text-subtle: #ccc;
+  --line-dark: #333;
+  --grip-dot: #777;
+  --grip-dot-hover: #aaa;
+  --canvas-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: var(--bg-workbench);
+  color: var(--text-subtle);
+}
+
+/* Smooth transition */
+body {
+  font-family: var(--font-ui);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

@@ -8,13 +8,22 @@ import { EdgeDrag } from './core/edgeDrag.js';
 import { nodeManager } from './core/nodeManager.js';
 import { edgeManager } from './core/edgeManager.js';
 import { history } from './core/history.js';
+import { panelManager } from './ui/panelManager.js';
+import { themeManager } from './ui/themeManager.js';
+import { menuManager } from './ui/menuManager.js';
+import { statusBar } from './ui/statusBar.js';
+
+
+
 
 window.addEventListener('DOMContentLoaded', () => {
   // ============================
   // Initialize UI and Core
   // ============================
+   menuManager.init();
   initToolbar();
   contextMenu.init();
+  
 
   const svg = document.getElementById('flowchart');
   enableZoomPan(svg);
@@ -359,7 +368,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (arrowKeys.includes(e.key)) {
       e.preventDefault();
 
-      const MOVE_STEP = e.shiftKey ? 50 : 20; // 🔹 Shift = faster move
+      const MOVE_STEP = e.shiftKey ? 32 : 8; // 🔹 Shift = faster move
       if (selectedIds.size === 0) return;
 
       history.save();
@@ -659,3 +668,4 @@ function showToast(message, type = null) {
     }
   });
 })();
+

@@ -3,22 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <title>Flowchart Editor</title>
+  <link rel="stylesheet" href="src/styles/theme.css" />
+  <link rel="stylesheet" href="src/styles/animations.css" />
   <link rel="stylesheet" href="src/styles/main.css" />
   <link rel="stylesheet" href="src/styles/layout.css" />
+  <link rel="stylesheet" href="src/styles/toolbar.css" />
+  <link rel="stylesheet" href="src/styles/statusbar.css" />
+  <link rel="stylesheet" href="src/styles/nodes.css" />
+  <link rel="stylesheet" href="src/styles/edges.css" />
+  <link rel="stylesheet" href="src/styles/panels.css" />
+  <link rel="stylesheet" href="src/styles/menu.css" />
+
 </head>
 <body>
+  <!-- Menu Bar -->
+  <div id="menubar">
+  </div>
 
-  <!-- ===================== MENU BAR ===================== -->
-  <header id="menu-bar">
-    <nav>
-      <div class="menu-item" data-menu="file">File</div>
-      <div class="menu-item" data-menu="edit">Edit</div>
-      <div class="menu-item" data-menu="view">View</div>
-      <div class="menu-item" data-menu="help">Help</div>
-    </nav>
-  </header>
-
-  <!-- ===================== TOOLBAR (your current one preserved) ===================== -->
+  <!-- Toolbar -->
   <div id="toolbar">
     <button data-type="start">Start</button>
     <button data-type="process">Process</button>
@@ -28,18 +30,23 @@
     <button id="exportBtn">Export JSON</button>
   </div>
 
-  <!-- ===================== MAIN EDITOR LAYOUT ===================== -->
-  <main id="editor-layout">
-    <!-- Left Panel (new placeholder) -->
-    <aside id="left-panel">
-      <h3>Shapes</h3>
-      <div class="node-template" data-type="rect">⬛ Rectangle</div>
-      <div class="node-template" data-type="circle">⚪ Circle</div>
-      <div class="node-template" data-type="diamond">🔷 Diamond</div>
-    </aside>
-
-    <!-- Center Canvas (your original SVG fully intact) -->
-    <section id="canvas-container">
+  <!-- Main Layout -->
+  <div id="editor-container">
+    <!-- Left Panel -->
+    <div id="left-panel" class="panel">
+      <div class="panel-header">Nodes</div>
+      <div class="panel-content">
+        <button data-type="start">Start Node</button>
+        <button data-type="process">Process Node</button>
+        <button data-type="decision">Decision Node</button>
+      </div>
+    </div>
+  
+    <!-- Left Toggle Bar -->
+    <div id="left-toggle" class="panel-toggle-bar" data-target="left-panel"></div>
+  
+    <!-- Main Editor -->
+    <div id="editor-main">
       <svg id="flowchart">
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
@@ -50,26 +57,26 @@
         <g id="guides"></g>
         <g id="distance-hints"></g>
       </svg>
-    </section>
-
-    <!-- Right Panel (new placeholder for styles/properties) -->
-    <aside id="right-panel">
-      <h3>Properties</h3>
-      <div id="properties">
-        <label>Fill: <input type="color" id="fillColor" /></label>
-        <label>Stroke: <input type="color" id="strokeColor" /></label>
-        <label>Width: <input type="number" id="widthValue" min="20" /></label>
-        <label>Height: <input type="number" id="heightValue" min="20" /></label>
+    </div>
+  
+    <!-- Right Toggle Bar -->
+    <div id="right-toggle" class="panel-toggle-bar" data-target="right-panel"></div>
+  
+    <!-- Right Panel -->
+    <div id="right-panel" class="panel">
+      <div class="panel-header">Properties</div>
+      <div class="panel-content">
+        <label>Fill Color</label>
+        <input type="color" id="nodeColorPicker" />
       </div>
-    </aside>
-  </main>
+    </div>
+  </div>
+  <!-- Status Bar -->
+  <div id="statusbar">
+    <span>Flowchart Editor Ready</span>
+    <span id="status-theme">🌙 Dark Mode</span>
+  </div>
 
-  <!-- ===================== STATUS BAR ===================== -->
-  <footer id="status-bar">
-    <div id="status-left">Ready</div>
-    <div id="status-center">Zoom: 100%</div>
-    <div id="status-right">X: 0, Y: 0</div>
-  </footer>
 
   <script type="module" src="src/main.js"></script>
 </body>

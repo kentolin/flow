@@ -93,7 +93,9 @@ export const edgeManager = {
     polyline.style.strokeWidth = 2;
     polyline.setAttribute('fill', 'none');
     polyline.setAttribute('marker-end', 'url(#arrowhead)');
-    polyline.classList.add('edge');
+    polyline.classList.add('edge', 'edge-draw'); // ✨ animate edge creation
+    setTimeout(() => polyline.classList.remove('edge-draw'), 700); // remove animation class after play
+
 
     // Hover
     polyline.addEventListener('mouseenter', (e) => this.onHoverStart(e));
@@ -150,16 +152,18 @@ export const edgeManager = {
   updateSelectionStyles() {
     document.querySelectorAll('.edge').forEach((edge) => {
       const key = this.edgeKey(edge);
+      
       if (this.selectedEdges.has(key)) {
         edge.style.stroke = '#ff8800';
         edge.style.strokeWidth = 3;
-        edge.classList.add('selected');
+        edge.classList.add('glow-pulse'); // ✨ soft glow pulse for selection
       } else {
         const eObj = state.edges.find((obj) => this.edgeKey(obj) === key);
+        edge.classList.remove('glow-pulse');
         edge.style.stroke = eObj?.color || '#666';
         edge.style.strokeWidth = 2;
-        edge.classList.remove('selected');
       }
+
     });
   },
 

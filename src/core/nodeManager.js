@@ -7,7 +7,7 @@ import { contextMenu } from '../ui/contextMenu.js';
 // ==============================
 // Snap & Resize constants
 // ==============================
-const SNAP_DISTANCES = [20, 40, 60, 80, 100];
+const SNAP_DISTANCES = [8, 16, 24, 32, 40, 48, 56, 64];
 const SNAP_THRESHOLD = 5;
 
 const MIN_WIDTH = 60;
@@ -34,7 +34,7 @@ export const nodeManager = {
 
   createNode(type, x = 150, y = 150) {
     history.save();
-    const snap = 20;
+    const snap = 8;
     const node = {
       id: 'node_' + Date.now(),
       type,
@@ -53,6 +53,9 @@ export const nodeManager = {
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.classList.add('node');
+    setTimeout(() => g.classList.add('node-visible'), 10);
+
+
     g.dataset.id = node.id;
     g.setAttribute('transform', `translate(${node.x},${node.y})`);
 
@@ -154,7 +157,7 @@ export const nodeManager = {
         if (!dragging) return;
 
         const movePt = this.svgPoint(svg, eMove.clientX, eMove.clientY);
-        const snap = 20;
+        const snap = 8;
 
         draggedNodes.forEach(id => {
           const n = this.getNode(id);
@@ -484,13 +487,14 @@ export const nodeManager = {
       if (nodeId === this.selectedNode || this.multiSelect.has(nodeId)) {
         rect.style.stroke = "#0080ff";
         rect.style.strokeWidth = "2.5";
-        rect.style.filter = "drop-shadow(0 0 6px rgba(0,128,255,0.6))"; // ✅ glow
-        rect.style.transition = "filter 0.2s ease";
+        rect.classList.add('glow-pulse'); // ✨ add animated glow
       } else {
+        rect.classList.remove('glow-pulse');
         rect.style.stroke = "#333";
         rect.style.strokeWidth = "1";
         rect.style.filter = "none";
       }
+
     });
   }
   ,
