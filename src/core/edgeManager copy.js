@@ -9,8 +9,7 @@ import { contextMenu } from "../ui/contextMenu.js";
  */
 export const edgeManager = {
   tooltip: null,
-  selectedEdge: null,
-  multiSelect: new Set(),
+  selectedEdges: new Set(),
 
   /** Initialize tooltip for edge hover info */
   initTooltip() {
@@ -31,7 +30,7 @@ export const edgeManager = {
   /**
    * Add a new edge between nodes and ports.
    */
-  createEdge(fromId, toId, fromPort = "right", toPort = "left") {
+  addEdge(fromId, toId, fromPort = "right", toPort = "left") {
     // Prevent duplicates
     if (
       state.edges.find(
@@ -45,57 +44,55 @@ export const edgeManager = {
       return;
 
     history.save();
-    const edge = {
-      id: "edge_" + Date.now(),
+    state.edges.push({
       from: fromId,
       to: toId,
       fromPort,
       toPort,
       color: "#666",
-      label: "Edge",
-      strokeWidth: 2,
-    };
-    state.edges.push(edge);
-    this.renderEdge(edge);
-    return edge;
+    });
+    this.renderEdge(fromId, toId, fromPort, toPort);
   },
 
   /**
    * Render a single SVG polyline edge with event bindings.
    */
-  renderEdge(edge) {
+  renderEdge(fromId, toId, fromPort = "right", toPort = "left") {
     const svg = document.getElementById("flowchart");
     const viewport = svg.querySelector("#viewport");
-
-    const fromNode = nodeManager.getNode(edge.from);
-    const toNode = nodeManager.getNode(edge.to);
+    const fromNode = nodeManager.getNode(fromId);
+    const toNode = nodeManager.getNode(toId);
     if (!fromNode || !toNode) return;
 
-    const start = nodeManager.getPortCoords(fromNode, edge.fromPort);
-    const end = nodeManager.getPortCoords(toNode, edge.toPort);
+    const start = nodeManager.getPortCoords(fromNode, fromPort);
+    const end = nodeManager.getPortCoords(toNode, toPort);
     if (!start || !end) return;
 
     const points = this.routeEdge(start, end);
+    const edgeObj = state.edges.find(
+      (e) =>
+        e.from === fromId &&
+        e.to === toId &&
+        e.fromPort === fromPort &&
+        e.toPort === toPort
+    );
 
     const polyline = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "polyline"
     );
-    polyline.dataset.id = edge.id;
-    polyline.setAttribute("data-from", edge.from);
-    polyline.setAttribute("data-to", edge.to);
-    polyline.setAttribute("data-from-port", edge.fromPort);
-    polyline.setAttribute("data-to-port", edge.toPort);
+    polyline.setAttribute("data-from", fromId);
+    polyline.setAttribute("data-to", toId);
+    polyline.setAttribute("data-from-port", fromPort);
+    polyline.setAttribute("data-to-port", toPort);
     polyline.setAttribute(
       "points",
       points.map((p) => `${p.x},${p.y}`).join(" ")
     );
-    polyline.style.stroke = edge?.color || "#666"; // inline style wins over CSS
-    polyline.setAttribute("stroke-width", edge.strokeWidth);
+    polyline.style.stroke = edgeObj?.color || "#666"; // inline style wins over CSS
+    polyline.style.strokeWidth = 2;
     polyline.setAttribute("fill", "none");
     polyline.setAttribute("marker-end", "url(#arrowhead)");
-    polyline.setAttribute("stroke-dasharray", edge.dash || "");
-
     polyline.classList.add("edge", "edge-draw"); // ✨ animate edge creation
     setTimeout(() => polyline.classList.remove("edge-draw"), 700); // remove animation class after play
 
@@ -107,18 +104,22 @@ export const edgeManager = {
     // Click (select edge)
     polyline.addEventListener("click", (e) => {
       e.stopPropagation();
+      const key = this.edgeKey(polyline);
       if (e.shiftKey) {
-        if (this.multiSelect.has(edge.id)) this.multiSelect.delete(edge.id);
-        else this.multiSelect.add(edge.id);
+        if (this.selectedEdges.has(key)) this.selectedEdges.delete(key);
+        else this.selectedEdges.add(key);
       } else {
-        this.setSelectedEdge(edge.id);
-        document.dispatchEvent(
-          new CustomEvent("properties:update", {
-            detail: { type: "edge", id: edge.id },
-          })
-        );
+        this.selectedEdges.clear();
+        this.selectedEdges.add(key);
       }
       this.updateSelectionStyles();
+      const edgeObj = state.edges.find((e) => this.edgeKey(e) === key);
+      if (!edgeObj) return;
+      document.dispatchEvent(
+        new CustomEvent("inspector:update", {
+          detail: { type: "edge", edge: edgeObj },
+        })
+      );
     });
 
     // Right-click context menu
@@ -127,16 +128,14 @@ export const edgeManager = {
       e.stopPropagation();
 
       const edgeData = {
-        id: edge.id,
-        from: edge.from,
-        to: edge.to,
-        fromPort: edge.fromPort,
-        toPort: edge.toPort,
+        from: fromId,
+        to: toId,
+        fromPort,
+        toPort,
         el: polyline,
       };
-
       const items = [
-        { label: "Delete Edge", action: () => this.removeEdge(edge.id) },
+        { label: "Delete Edge", action: () => this.removeEdge(fromId, toId) },
         {
           label: "Reverse Direction",
           action: () => this.reverseEdge(edgeData),
@@ -148,16 +147,7 @@ export const edgeManager = {
 
     viewport.appendChild(polyline);
   },
-  setSelectedEdge(id) {
-    this.selectedEdge = id;
-    this.multiSelect.clear();
-    this.updateSelectionStyles();
-  },
-  clearSelection() {
-    this.selectedEdge = null;
-    this.multiSelect.clear();
-    this.updateSelectionStyles();
-  },
+
   /** Build unique key for edge (for Set comparison) */
   edgeKey(edgeElOrObj) {
     const from = edgeElOrObj.dataset?.from || edgeElOrObj.from;
@@ -166,53 +156,55 @@ export const edgeManager = {
     const tp = edgeElOrObj.dataset?.toPort || edgeElOrObj.toPort;
     return `${from}_${fp}_${to}_${tp}`;
   },
-  getEdge(id) {
-    return state.edges.find((e) => e.id === id);
-  },
 
   /** Update selection visuals for edges */
   updateSelectionStyles() {
-    document.querySelectorAll(".edge").forEach((el) => {
-      const edgeId = el.dataset.id;
-      const edge = state.edges.find((obj) => obj.id === edgeId);
+    document.querySelectorAll(".edge").forEach((edge) => {
+      const key = this.edgeKey(edge);
 
-      if (!edge) return;
-
-      // 🔶 Selected edges
-      if (edgeId === this.selectedEdge || this.multiSelect.has(edgeId)) {
-        el.style.stroke = "#ff8800";
-        el.style.strokeWidth = edge.strokeWidth ?? 3; // ← respect strokeWidth
-        el.classList.add("glow-pulse");
+      if (this.selectedEdges.has(key)) {
+        edge.style.stroke = "#ff8800";
+        edge.style.strokeWidth = 3;
+        edge.classList.add("glow-pulse"); // ✨ soft glow pulse for selection
       } else {
-        // 🔹 Normal edges
-        el.classList.remove("glow-pulse");
-        el.style.stroke = edge.color || "#666666";
-        el.style.strokeWidth = edge.strokeWidth ?? 2; // ← respect strokeWidth
-        el.setAttribute("stroke-dasharray", edge.dash || "");
+        const eObj = state.edges.find((obj) => this.edgeKey(obj) === key);
+        edge.classList.remove("glow-pulse");
+        edge.style.stroke = eObj?.color || "#666666";
+        edge.style.strokeWidth = 2;
       }
     });
   },
+
   /** Change edge color persistently */
-  changeEdgeColor(edge) {
+  changeEdgeColor(edgeData) {
     const color = prompt("Enter new edge color (CSS):", "#00aaff");
     if (!color) return;
-    const coloredEdge = state.edges.find((e) => e.id === edge.id);
-    if (!coloredEdge) return;
+    const edge = state.edges.find(
+      (e) =>
+        e.from === edgeData.from &&
+        e.to === edgeData.to &&
+        e.fromPort === edgeData.fromPort &&
+        e.toPort === edgeData.toPort
+    );
+    if (!edge) return;
 
-    coloredEdge.color = color;
-    if (coloredEdge.el) coloredEdge.el.style.stroke = color;
+    edge.color = color;
+    if (edgeData.el) edgeData.el.style.stroke = color;
   },
 
   /** Reverse edge direction */
-  reverseEdge(edge) {
+  reverseEdge(edgeData) {
     history.save();
-    const reverseEdge = state.edges.find((e) => e.id === edge.id);
-    if (!reverseEdge) return;
-    [reverseEdge.from, reverseEdge.to] = [reverseEdge.to, reverseEdge.from];
-    [reverseEdge.fromPort, reverseEdge.toPort] = [
-      reverseEdge.toPort,
-      reverseEdge.fromPort,
-    ];
+    const edge = state.edges.find(
+      (e) =>
+        e.from === edgeData.from &&
+        e.to === edgeData.to &&
+        e.fromPort === edgeData.fromPort &&
+        e.toPort === edgeData.toPort
+    );
+    if (!edge) return;
+    [edge.from, edge.to] = [edge.to, edge.from];
+    [edge.fromPort, edge.toPort] = [edge.toPort, edge.fromPort];
     this.redrawAll();
   },
 
@@ -222,7 +214,7 @@ export const edgeManager = {
     const viewport = svg.querySelector("#viewport");
     viewport.querySelectorAll(".edge").forEach((l) => l.remove());
     for (const e of state.edges) {
-      this.renderEdge(e);
+      this.renderEdge(e.from, e.to, e.fromPort, e.toPort);
     }
     this.updateSelectionStyles();
   },
@@ -286,9 +278,11 @@ export const edgeManager = {
   },
 
   /** Remove specific edge */
-  removeEdge(edgeId) {
+  removeEdge(fromId, toId) {
     history.save();
-    state.edges = state.edges.filter((e) => !(e.id === edgeId));
+    state.edges = state.edges.filter(
+      (e) => !(e.from === fromId && e.to === toId)
+    );
     this.redrawAll();
   },
 

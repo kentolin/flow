@@ -1,0 +1,48 @@
+/* ==========================================
+🧠 App Header
+========================================== */
+#app-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 4px 10px;
+
+  background: var(--bg-header, #f3f3f3);
+
+  font-family: var(--font-ui, "Segoe UI", system-ui, sans-serif);
+  color: #333;
+  user-select: none;
+}
+
+#app-logo {
+  width: 16px;
+  height: 16px;
+}
+
+#app-title {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+#file-name {
+  font-size: 12px;
+  color: #777;
+  font-style: italic;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.15s ease;
+}
+
+#file-name:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* Editable input style */
+#file-name.editing {
+  background: #fff;
+  border: 1px solid #bbb;
+  color: #222;
+  font-style: normal;
+}

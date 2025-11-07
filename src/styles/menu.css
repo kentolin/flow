@@ -1,71 +1,79 @@
-/* ========================================
-🧭 VS Code–like Horizontal Menu Bar
-======================================== */
+/* ==========================================
+🧭 Menubar (Scrollable)
+========================================== */
 #menubar {
   display: flex;
   align-items: center;
-  background: var(--bg-toolbar);
-  border-bottom: 1px solid var(--line-slim);
-  color: var(--text-main);
-  user-select: none;
-  height: 28px;
-  line-height: 28px;
+  height: 26px;
+  padding: 0 10px;
+  background: var(--bg-menubar, #fafafa);
+  border-bottom: 1px solid var(--line-slim, #d0d0d0);
   font-size: 13px;
-  padding: 0 8px;
-  font-family: var(--font-ui);
-  box-shadow: var(--canvas-shadow);
-  z-index: 100;
+  color: #333;
+  user-select: none;
+  position: relative;
+  z-index: 50;
 }
 
+/* Menu Item */
 .menu-item {
   position: relative;
-  padding: 0 12px;
-  cursor: default;
-  height: 100%;
   display: flex;
   align-items: center;
+  height: 100%;
+  padding: 0 10px;
+  border-radius: 3px;
+  cursor: default;
+  transition: background 0.15s ease;
 }
 
+/* Highlight background only — not text */
 .menu-item:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 120, 215, 0.08);
 }
 
+/* Dropdown */
 .menu-dropdown {
   display: none;
   position: absolute;
   top: 100%;
   left: 0;
-  background: var(--bg-panel);
-  border: 1px solid var(--line-slim);
-  box-shadow: var(--canvas-shadow);
+  background: var(--bg-panel, #fff);
+  border: 1px solid var(--line-slim, #ccc);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   min-width: 160px;
   flex-direction: column;
   font-size: 13px;
+  animation: dropdown-fade 0.12s ease;
+  z-index: 100;
 }
 
-.menu-item.open>.menu-dropdown {
+.menu-item.open > .menu-dropdown {
   display: flex;
 }
 
-.menu-dropdown div {
+/* Individual dropdown item */
+.menu-dropdown > div {
   padding: 6px 12px;
-  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s ease, color 0.1s ease;
+  color: #333;
 }
 
-.menu-dropdown div:hover {
-  background: var(--accent-blue);
+.menu-dropdown > div:hover {
+  background: var(--accent-blue, #0078d7);
   color: #fff;
 }
 
+/* Separator */
 .menu-separator {
-  border-top: 1px solid var(--line-slim);
+  border-top: 1px solid var(--line-slim, #ccc);
   margin: 4px 0;
 }
 
-/* Submenu (Theme) */
+/* Submenu */
 .submenu {
   position: relative;
-  padding-right: 16px;
 }
 
 .submenu::after {
@@ -73,21 +81,35 @@
   position: absolute;
   right: 8px;
   opacity: 0.6;
+  font-size: 10px;
 }
 
+/* Submenu dropdown */
 .submenu-dropdown {
   display: none;
   position: absolute;
   top: 0;
   left: 100%;
-  min-width: 140px;
-  background: var(--bg-panel);
-  border: 1px solid var(--line-slim);
-  box-shadow: var(--canvas-shadow);
-  z-index: 250;
+  background: var(--bg-panel, #fff);
+  border: 1px solid var(--line-slim, #ccc);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  flex-direction: column;
+  z-index: 101;
 }
 
-.submenu:hover>.submenu-dropdown {
+.submenu:hover > .submenu-dropdown {
   display: flex;
-  flex-direction: column;
+}
+
+/* Animation */
+@keyframes dropdown-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Icon Designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #64748b;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            color: #1e293b;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        textarea {
+            width: 100%;
+            height: 400px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .examples {
+            margin-top: 16px;
+        }
+
+        .examples h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .preview-controls {
+            margin-bottom: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-label input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .color-input {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #cbd5e1;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .slider {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+            outline: none;
+        }
+
+        .slider-value {
+            min-width: 48px;
+            text-align: right;
+            font-weight: 500;
+            color: #475569;
+        }
+
+        .preview-container {
+            position: relative;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .preview-content {
+            position: relative;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .preview-svg {
+            transition: all 0.3s;
+        }
+
+        .grid-svg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .reference {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+
+        .reference h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .reference code {
+            display: block;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .tips {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+        }
+
+        .tips h2 {
+            font-size: 1.25rem;
+            color: #1e293b;
+            margin-bottom: 16px;
+        }
+
+        .tips ul {
+            list-style: none;
+        }
+
+        .tips li {
+            color: #64748b;
+            margin-bottom: 12px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tips li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .tips strong {
+            color: #1e293b;
+        }
+
+        label {
+            font-size: 0.875rem;
+            color: #475569;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SVG Icon Designer</h1>
+            <p>Design and visualize SVG icons with vanilla JavaScript</p>
+        </div>
+
+        <div class="grid">
+            <!-- Editor Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>SVG Code</h2>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="copySvg()" title="Copy to clipboard">
+                            📋 Copy
+                        </button>
+                        <button class="btn btn-success" onclick="downloadSvg()" title="Download SVG">
+                            💾 Download
+                        </button>
+                    </div>
+                </div>
+
+                <textarea id="svgCode" spellcheck="false"></textarea>
+
+                <div class="examples">
+                    <h3>Example Icons:</h3>
+                    <div class="example-buttons">
+                        <button class="btn btn-secondary" onclick="loadExample('heart')">Heart</button>
+                        <button class="btn btn-secondary" onclick="loadExample('star')">Star</button>
+                        <button class="btn btn-secondary" onclick="loadExample('home')">Home</button>
+                        <button class="btn btn-secondary" onclick="loadExample('circle')">Circle</button>
+                        <button class="btn btn-secondary" onclick="loadExample('gear')">Gear</button>
+                        <button class="btn btn-secondary" onclick="loadExample('arrow')">Arrow</button>
+                    </div>
+                </div>
+
+                <div class="examples" style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
+                    <h3>ViewBox Converter:</h3>
+                    <div style="display: flex; gap: 8px; align-items: center; margin-top: 8px;">
+                        <input type="number" id="fromSize" placeholder="From" value="100"
+                            style="width: 80px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px;">
+                        <span style="color: #64748b;">→</span>
+                        <input type="number" id="toSize" placeholder="To" value="24"
+                            style="width: 80px; padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px;">
+                        <button class="btn btn-primary" onclick="convertViewBox()" style="flex: 1;">Convert
+                            ViewBox</button>
+                    </div>
+                    <p style="font-size: 0.75rem; color: #64748b; margin-top: 8px;">Scales all coordinates from one
+                        viewBox size to another</p>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2>Preview</h2>
+                </div>
+
+                <div class="preview-controls">
+                    <div class="control-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="showGrid" checked onchange="updatePreview()">
+                            <span>Show Grid</span>
+                        </label>
+
+                        <label class="checkbox-label">
+                            <span>Background:</span>
+                            <input type="color" id="bgColor" value="#ffffff" class="color-input"
+                                onchange="updatePreview()">
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Grid Size:</label>
+                        <div class="slider-group">
+                            <input type="range" id="gridSize" min="50" max="200" value="100" class="slider"
+                                oninput="updatePreview()">
+                            <span class="slider-value" id="gridSizeValue">100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="preview-container" id="previewContainer">
+                    <svg class="grid-svg" id="gridSvg"></svg>
+                    <div class="preview-content">
+                        <div class="preview-svg" id="previewSvg"></div>
+                    </div>
+                </div>
+
+                <div class="reference">
+                    <h3>Quick Reference:</h3>
+                    <code>&lt;circle cx="50" cy="50" r="40"/&gt;</code>
+                    <code>&lt;rect x="10" y="10" width="80" height="80"/&gt;</code>
+                    <code>&lt;line x1="0" y1="0" x2="100" y2="100"/&gt;</code>
+                    <code>&lt;path d="M10,10 L50,50 L90,10"/&gt;</code>
+                    <code style="color: #94a3b8; margin-top: 8px;">M=move, L=line, C=curve, Z=close</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="tips">
+            <h2>Tips for Hand-Coding SVG Icons</h2>
+            <ul>
+                <li><strong>Start simple:</strong> Use basic shapes (circle, rect, polygon) before moving to complex
+                    paths</li>
+                <li><strong>ViewBox is key:</strong> Set viewBox="0 0 100 100" for a 100x100 coordinate system</li>
+                <li><strong>Path commands:</strong> M (move), L (line), C (curve), Q (quadratic), A (arc), Z (close)
+                </li>
+                <li><strong>Use stroke-linejoin:</strong> Add stroke-linejoin="round" for smooth corners</li>
+                <li><strong>Keep it simple:</strong> Icons work best with simple, bold shapes</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const examples = {
+            heart: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Heart icon example -->
+  <path d="M50,85 C50,85 15,60 15,40 C15,25 25,20 35,25 C40,27 45,32 50,40 C55,32 60,27 65,25 C75,20 85,25 85,40 C85,60 50,85 50,85 Z" 
+        fill="#ff6b6b" 
+        stroke="#c92a2a" 
+        stroke-width="2"/>
+</svg>`,
+            star: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <polygon points="50,10 61,35 88,35 66,52 73,77 50,61 27,77 34,52 12,35 39,35" 
+           fill="#ffd43b" stroke="#fab005" stroke-width="2"/>
+</svg>`,
+            home: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M10,50 L50,15 L90,50 L90,85 L60,85 L60,60 L40,60 L40,85 L10,85 Z" 
+        fill="#4dabf7" stroke="#1971c2" stroke-width="2"/>
+  <rect x="65" y="30" width="15" height="15" fill="#1971c2"/>
+</svg>`,
+            circle: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="50" cy="50" r="35" fill="#51cf66" stroke="#2f9e44" stroke-width="3"/>
+  <circle cx="50" cy="50" r="20" fill="#2f9e44"/>
+</svg>`,
+            gear: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M50,20 L55,35 L70,35 L58,45 L63,60 L50,50 L37,60 L42,45 L30,35 L45,35 Z" 
+        fill="#868e96" stroke="#495057" stroke-width="2"/>
+  <circle cx="50" cy="50" r="15" fill="#868e96" stroke="#495057" stroke-width="2"/>
+  <circle cx="50" cy="50" r="8" fill="#ffffff"/>
+</svg>`,
+            arrow: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20,50 L70,50 L70,30 L90,50 L70,70 L70,50" 
+        fill="#9775fa" stroke="#7048e8" stroke-width="2" stroke-linejoin="round"/>
+</svg>`
+        };
+
+        // Initialize
+        document.getElementById('svgCode').value = examples.heart;
+        updatePreview();
+
+        // Event listener for textarea
+        document.getElementById('svgCode').addEventListener('input', updatePreview);
+
+        function updatePreview() {
+            const svgCode = document.getElementById('svgCode').value;
+            const showGrid = document.getElementById('showGrid').checked;
+            const bgColor = document.getElementById('bgColor').value;
+            const gridSize = parseInt(document.getElementById('gridSize').value);
+
+            // Update grid size display
+            document.getElementById('gridSizeValue').textContent = gridSize;
+
+            // Update background color
+            document.getElementById('previewContainer').style.backgroundColor = bgColor;
+
+            // Update preview SVG
+            const previewSvg = document.getElementById('previewSvg');
+            previewSvg.innerHTML = svgCode;
+            previewSvg.style.width = (gridSize * 2) + 'px';
+            previewSvg.style.height = (gridSize * 2) + 'px';
+
+            // Update grid
+            const gridSvg = document.getElementById('gridSvg');
+            if (showGrid) {
+                gridSvg.style.display = 'block';
+                const smallGrid = gridSize / 10;
+                const gridHtml = '<defs>' +
+                    '<pattern id="grid" width="' + smallGrid + '" height="' + smallGrid + '" patternUnits="userSpaceOnUse">' +
+                    '<path d="M ' + smallGrid + ' 0 L 0 0 0 ' + smallGrid + '" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>' +
+                    '</pattern>' +
+                    '<pattern id="gridMajor" width="' + gridSize + '" height="' + gridSize + '" patternUnits="userSpaceOnUse">' +
+                    '<rect width="' + gridSize + '" height="' + gridSize + '" fill="url(#grid)"/>' +
+                    '<path d="M ' + gridSize + ' 0 L 0 0 0 ' + gridSize + '" fill="none" stroke="#cbd5e1" stroke-width="1"/>' +
+                    '</pattern>' +
+                    '</defs>' +
+                    '<rect width="100%" height="100%" fill="url(#gridMajor)" />';
+                gridSvg.innerHTML = gridHtml;
+            } else {
+                gridSvg.style.display = 'none';
+            }
+        }
+
+        function loadExample(key) {
+            document.getElementById('svgCode').value = examples[key];
+            updatePreview();
+        }
+
+        function copySvg() {
+            const svgCode = document.getElementById('svgCode').value;
+            navigator.clipboard.writeText(svgCode).then(() => {
+                alert('SVG code copied to clipboard!');
+            });
+        }
+
+        function downloadSvg() {
+            const svgCode = document.getElementById('svgCode').value;
+            const blob = new Blob([svgCode], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'icon.svg';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function convertViewBox() {
+            const fromSize = parseFloat(document.getElementById('fromSize').value);
+            const toSize = parseFloat(document.getElementById('toSize').value);
+
+            if (!fromSize || !toSize || fromSize <= 0 || toSize <= 0) {
+                alert('Please enter valid sizes');
+                return;
+            }
+
+            const scale = toSize / fromSize;
+            let svgCode = document.getElementById('svgCode').value;
+
+            // Function to scale a number and format it nicely
+            function scaleNum(num) {
+                const scaled = parseFloat(num) * scale;
+                const rounded = Math.round(scaled * 100) / 100;
+                return rounded.toString().replace(/\.0+$/, '');
+            }
+
+            // Convert viewBox attribute
+            svgCode = svgCode.replace(
+                /viewBox="[^"]*"/g,
+                'viewBox="0 0 ' + toSize + ' ' + toSize + '"'
+            );
+
+            // Scale all numeric values in common attributes (one at a time)
+            svgCode = svgCode.replace(/cx="([^"]*)"/g, function (m, n) { return 'cx="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/cy="([^"]*)"/g, function (m, n) { return 'cy="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/r="([^"]*)"/g, function (m, n) { return 'r="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/rx="([^"]*)"/g, function (m, n) { return 'rx="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/ry="([^"]*)"/g, function (m, n) { return 'ry="' + scaleNum(n) + '"'; });
+
+            // Scale x, y, width, height (be careful with attribute names)
+            svgCode = svgCode.replace(/\sx="([^"]*)"/g, function (m, n) { return ' x="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/\sy="([^"]*)"/g, function (m, n) { return ' y="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/x1="([^"]*)"/g, function (m, n) { return 'x1="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/y1="([^"]*)"/g, function (m, n) { return 'y1="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/x2="([^"]*)"/g, function (m, n) { return 'x2="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/y2="([^"]*)"/g, function (m, n) { return 'y2="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/width="([^"]*)"/g, function (m, n) { return 'width="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/height="([^"]*)"/g, function (m, n) { return 'height="' + scaleNum(n) + '"'; });
+            svgCode = svgCode.replace(/stroke-width="([^"]*)"/g, function (m, n) { return 'stroke-width="' + scaleNum(n) + '"'; });
+
+            // Scale path data (d attribute) - all numbers
+            svgCode = svgCode.replace(/d="([^"]*)"/g, function (match, pathData) {
+                const scaledPath = pathData.replace(/-?\d+\.?\d*/g, function (num) {
+                    return scaleNum(num);
+                });
+                return 'd="' + scaledPath + '"';
+            });
+
+            // Scale points attribute (for polygons and polylines)
+            svgCode = svgCode.replace(/points="([^"]*)"/g, function (match, points) {
+                const scaledPoints = points.replace(/-?\d+\.?\d*/g, function (num) {
+                    return scaleNum(num);
+                });
+                return 'points="' + scaledPoints + '"';
+            });
+
+            document.getElementById('svgCode').value = svgCode;
+            updatePreview();
+            alert('Converted from ' + fromSize + 'x' + fromSize + ' to ' + toSize + 'x' + toSize + '!');
+        }
+    </script>
+</body>
+
+</html>

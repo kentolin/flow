@@ -32,13 +32,12 @@ export const nodeManager = {
   selectedNode: null,
   multiSelect: new Set(),
 
-  createNode(type, x = 150, y = 150, label, shape = "rect") {
+  createNode(type, x = 150, y = 150, shape = "rect") {
     history.save();
     const snap = 8;
     const node = {
       id: "node_" + Date.now(),
       type,
-      label: label || type,
       shape,
       x: Math.round(x / snap) * snap,
       y: Math.round(y / snap) * snap,
@@ -47,7 +46,6 @@ export const nodeManager = {
     };
     state.nodes.push(node);
     this.renderNode(node);
-    return node;
   },
 
   /**
@@ -118,8 +116,8 @@ export const nodeManager = {
   },
 
   renderNode(node) {
-    const svg = document.getElementById("flowchart");
     const viewport = document.getElementById("viewport");
+    const svg = document.getElementById("flowchart");
 
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.classList.add("node");
@@ -451,11 +449,6 @@ export const nodeManager = {
         this.updateSelectionStyles();
       } else {
         this.setSelectedNode(node.id);
-        document.dispatchEvent(
-          new CustomEvent("properties:update", {
-            detail: { type: "node", id: node.id },
-          })
-        );
       }
     });
 
@@ -500,7 +493,7 @@ export const nodeManager = {
     // duplicate outgoing edges
     state.edges
       .filter((e) => e.from === node.id)
-      .forEach((e) => edgeManager.createEdge(newNode.id, e.to));
+      .forEach((e) => edgeManager.addEdge(newNode.id, e.to));
     document.dispatchEvent(new Event("flowchart:changed"));
   },
 
@@ -588,7 +581,6 @@ export const nodeManager = {
 
   setSelectedNode(id) {
     this.selectedNode = id;
-    this.multiSelect.clear();
     this.updateSelectionStyles();
   },
 

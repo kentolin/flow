@@ -1,0 +1,28 @@
+{
+  "name": "Rectangle",
+  "type": "rect",
+  "default": { "width": 120, "height": 60, "radius": 6 },
+  "ports": [
+    { "name": "top",    "x": 0.5, "y": 0 },
+    { "name": "right",  "x": 1,   "y": 0.5 },
+    { "name": "bottom", "x": 0.5, "y": 1 },
+    { "name": "left",   "x": 0,   "y": 0.5 }
+  ],
+  "handles": [
+    { "name": "top-left", "x": 0, "y": 0 },
+    { "name": "top-right", "x": 1, "y": 0 },
+    { "name": "bottom-left", "x": 0, "y": 1 },
+    { "name": "bottom-right", "x": 1, "y": 1 }
+  ],
+  "properties": {
+    "label": { "type": "text", "default": "Rectangle" },
+    "fill": { "type": "color", "default": "#ffffff" },
+    "stroke": { "type": "color", "default": "#000000" },
+    "radius": { "type": "number", "default": 6 }
+  },
+  "svg": {
+    "type": "rect",
+    "rx": "radius",
+    "ry": "radius"
+  }
+}
