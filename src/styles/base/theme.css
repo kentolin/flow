@@ -1,0 +1,13 @@
+.theme-light {
+  --background: #ffffff;
+  --surface: #f5f5f5;
+  --text-primary: #212121;
+  --node-fill: #ffffff;
+}
+
+.theme-dark {
+  --background: #1e1e1e;
+  --surface: #2d2d2d;
+  --text-primary: #e0e0e0;
+  --node-fill: #2d2d2d;
+}

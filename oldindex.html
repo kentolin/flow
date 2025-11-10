@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Flowchart Editor</title>
+  <link rel="stylesheet" href="src/styles/theme.css" />
+  <link rel="stylesheet" href="src/styles/animations.css" />
+  <link rel="stylesheet" href="src/styles/main.css" />
+  <link rel="stylesheet" href="src/styles/app.css" />
+  <link rel="stylesheet" href="src/styles/layout.css" />
+  <link rel="stylesheet" href="src/styles/toolbar.css" />
+  <link rel="stylesheet" href="src/styles/statusbar.css" />
+  <link rel="stylesheet" href="src/styles/nodes.css" />
+  <link rel="stylesheet" href="src/styles/edges.css" />
+  <link rel="stylesheet" href="src/styles/panels.css" />
+  <link rel="stylesheet" href="src/styles/leftPanel.css" />
+  <link rel="stylesheet" href="src/styles/rightPanel.css" />
+  <link rel="stylesheet" href="src/styles/menu.css" />
+
+</head>
+<body>
+  <!-- App Bar -->
+  <div id="app-header">
+    <img src="assets/icons/app.svg" alt="App" id="app-logo" />
+    <span id="app-title">Flowchart Editor</span>
+    <span id="file-name">Untitled Diagram</span>
+  </div>
+  <!-- Menu Bar -->
+  <div id="menubar">
+  </div>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+  </div>
+
+  <!-- Main Layout -->
+  <div id="editor-container">
+    <!-- Left Panel -->
+    <div id="left-panel" class="panel">
+    </div>
+  
+    <!-- Left Toggle Bar -->
+    <div id="left-toggle" class="panel-toggle-bar" data-target="left-panel"></div>
+  
+    <!-- Main Editor -->
+    <div id="editor-main">
+      <svg id="flowchart">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+          </marker>
+        </defs>
+        <g id="viewport"></g>
+        <g id="guides"></g>
+        <g id="distance-hints"></g>
+      </svg>
+    </div>
+  
+    <!-- Right Toggle Bar -->
+    <div id="right-toggle" class="panel-toggle-bar" data-target="right-panel"></div>
+  
+    <!-- Right Panel -->
+    <div id="right-panel" class="panel">
+    </div>
+
+
+  </div>
+  <!-- Status Bar -->
+  <div id="statusbar">
+    <span>Flowchart Editor Ready</span>
+    <span id="status-theme">🌙 Dark Mode</span>
+  </div>
+
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

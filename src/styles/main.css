@@ -1,0 +1,124 @@
+@import "./base/reset.css";
+@import "./base/variables.css";
+@import "./base/theme.css";
+
+@import "./layout/app-layout.css";
+@import "./layout/left-panel.css";
+@import "./layout/right-panel.css";
+
+@import "./components/nodes.css";
+@import "./components/edges.css";
+@import "./components/panels.css";
+@import "./components/toolbar.css";
+@import "./components/menu.css";
+@import "./components/statusbar.css";
+
+@import "./animations.css";
+@import "./dialogs.css";
+@import "./overlays.css";
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Selection */
+::selection {
+  background: var(--primary-light);
+  color: white;
+}
+
+/* Focus visible */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.no-select {
+  user-select: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .left-palette,
+  .right-inspector {
+    width: 220px;
+  }
+}
+
+@media (max-width: 768px) {
+  .left-palette,
+  .right-inspector {
+    position: absolute;
+    z-index: var(--z-panels);
+    height: 100%;
+  }
+
+  .left-palette {
+    transform: translateX(-100%);
+  }
+
+  .right-inspector {
+    transform: translateX(100%);
+  }
+
+  .left-palette.open {
+    transform: translateX(0);
+  }
+
+  .right-inspector.open {
+    transform: translateX(0);
+  }
+}

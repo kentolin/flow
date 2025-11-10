@@ -1,0 +1,5 @@
+{
+  "standard": ["nw", "ne", "se", "sw", "n", "e", "s", "w"],
+  "corners": ["nw", "ne", "se", "sw"],
+  "edges": ["n", "e", "s", "w"]
+}

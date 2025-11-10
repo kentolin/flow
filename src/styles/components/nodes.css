@@ -1,0 +1,82 @@
+.node {
+  cursor: move;
+  transition: opacity var(--transition-fast);
+}
+
+.node.selected .shape {
+  stroke: var(--node-selected);
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 8px rgba(74, 144, 226, 0.5));
+}
+
+.node:hover .shape {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.node-label {
+  fill: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  user-select: none;
+  pointer-events: none;
+}
+
+.shape {
+  transition: all var(--transition-fast);
+}
+
+/* Ports */
+.port {
+  fill: var(--primary);
+  stroke: white;
+  stroke-width: 2px;
+  cursor: crosshair;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.node:hover .port,
+.node.selected .port {
+  opacity: 1;
+}
+
+.port:hover {
+  fill: var(--primary-dark);
+  r: 6;
+}
+
+/* Handles */
+.handle {
+  fill: var(--primary);
+  stroke: white;
+  stroke-width: 1px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.node.selected .handle {
+  opacity: 1;
+}
+
+.handle:hover {
+  fill: var(--primary-dark);
+  transform: scale(1.2);
+}
+
+.handle-nw,
+.handle-se {
+  cursor: nwse-resize;
+}
+.handle-ne,
+.handle-sw {
+  cursor: nesw-resize;
+}
+.handle-n,
+.handle-s {
+  cursor: ns-resize;
+}
+.handle-e,
+.handle-w {
+  cursor: ew-resize;
+}

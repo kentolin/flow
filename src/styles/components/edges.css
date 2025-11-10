@@ -1,0 +1,41 @@
+.edge {
+  pointer-events: stroke;
+}
+
+.edge-path {
+  fill: none;
+  stroke: var(--edge-stroke);
+  stroke-width: var(--edge-stroke-width);
+  cursor: pointer;
+  transition: stroke-width var(--transition-fast);
+}
+
+.edge:hover .edge-path {
+  stroke-width: 3px;
+  stroke: var(--primary);
+}
+
+.edge.selected .edge-path {
+  stroke: var(--primary);
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 4px rgba(74, 144, 226, 0.5));
+}
+
+.edge-label {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  user-select: none;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+/* Markers */
+marker path {
+  fill: var(--edge-stroke);
+}
+
+.edge:hover marker path,
+.edge.selected marker path {
+  fill: var(--primary);
+}

@@ -1,0 +1,103 @@
+.menu-bar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 var(--spacing-sm);
+  user-select: none;
+  z-index: var(--z-toolbar);
+}
+
+.menu-item {
+  position: relative;
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+}
+
+.menu-item:hover {
+  background: var(--surface-dark);
+}
+
+.menu-item.active {
+  background: var(--surface-dark);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 220px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xs);
+  display: none;
+  z-index: 1000;
+}
+
+.menu-item.active .menu-dropdown {
+  display: block;
+}
+
+.menu-option {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: background var(--transition-fast);
+  position: relative;
+}
+
+.menu-option:hover {
+  background: var(--surface);
+}
+
+.menu-option-checkbox {
+  width: 16px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.menu-option-label {
+  flex: 1;
+}
+
+.menu-option-shortcut {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.menu-separator {
+  height: 1px;
+  background: var(--border);
+  margin: var(--spacing-xs) 0;
+}
+
+.submenu-container {
+  position: relative;
+}
+
+.submenu-arrow {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.submenu {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 4px;
+  display: none;
+}
+
+.submenu-container:hover .submenu {
+  display: block;
+}

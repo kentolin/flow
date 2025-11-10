@@ -1,0 +1,49 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  z-index: var(--z-toolbar);
+}
+
+.tool-group {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--surface-dark);
+  border-radius: 6px;
+}
+
+.tool-button {
+  padding: 8px 12px;
+  background: transparent;
+  border-radius: 4px;
+  font-size: 16px;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.tool-button:hover {
+  background: var(--background);
+  transform: translateY(-1px);
+}
+
+.tool-button.active {
+  background: var(--primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-button:active {
+  transform: translateY(0);
+}
+
+.toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 var(--spacing-xs);
+}

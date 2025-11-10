@@ -1,0 +1,27 @@
+{
+  "default": {
+    "fill": "#ffffff",
+    "stroke": "#333333",
+    "strokeWidth": 2
+  },
+  "primary": {
+    "fill": "#E3F2FD",
+    "stroke": "#1976D2",
+    "strokeWidth": 2
+  },
+  "success": {
+    "fill": "#E8F5E9",
+    "stroke": "#388E3C",
+    "strokeWidth": 2
+  },
+  "warning": {
+    "fill": "#FFF3E0",
+    "stroke": "#F57C00",
+    "strokeWidth": 2
+  },
+  "danger": {
+    "fill": "#FFEBEE",
+    "stroke": "#D32F2F",
+    "strokeWidth": 2
+  }
+}
