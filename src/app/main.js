@@ -1,350 +1,409 @@
-// ============================================================================
-// FILE: src/app/main.js
-// ============================================================================
-import { ServiceContainer, ServiceProvider } from "../core/container/index.js";
+/**
+ * Flowchart Editor - Main Application Entry Point
+ * Bootstraps the entire application with all services, layers, and components
+ */
+
+import { ServiceProvider, ServiceContainer } from "../core/container/index.js";
+import { EventBus } from "../core/events/EventBus.js";
+import { EditorState, StateManager } from "../core/state/index.js";
+import { Editor } from "../core/Editor.js";
 import { ShapeLoader } from "../shapes/shapeLoader.js";
+
+// Managers
+import {
+  NodeManager,
+  EdgeManager,
+  SelectionManager,
+  HistoryManager,
+  ClipboardManager,
+  SnapManager,
+  ValidationManager,
+  ThemeManager,
+  ExportManager,
+  PluginManager,
+  LayerManager,
+} from "../core/managers/index.js";
+
+// UI Components
+import { ToolBar } from "../ui/bars/ToolBar.js";
+import { MenuBar } from "../ui/bars/MenuBar.js";
+import { StatusBar } from "../ui/bars/StatusBar.js";
 import { LeftPalette } from "../ui/panels/LeftPalette.js";
 import { RightInspector } from "../ui/panels/RightInspector.js";
-import { ToolBar } from "../ui/bars/ToolBar.js";
-import { StatusBar } from "../ui/bars/StatusBar.js";
+import { LayersPanel } from "../ui/panels/LayersPanel.js";
+import { MiniMap } from "../ui/panels/MiniMap.js";
 
 class FlowchartApp {
   constructor() {
-    this.container = new ServiceContainer();
-    this.initialize();
+    this.container = null;
+    this.services = null;
+    this.eventBus = null;
+    this.stateManager = null;
+    this.editor = null;
+    this.managers = {};
+    this.ui = {};
   }
 
-  initialize() {
-    // Step 1: Create DOM structure first
-    this.createDOMStructure();
+  /**
+   * Initialize and bootstrap the entire application
+   */
+  async initialize() {
+    console.log("🚀 Initializing Flowchart Editor...");
 
-    // Step 2: Register all services
-    ServiceProvider.register(this.container);
+    // Step 1: Create DOM structure
+    this._createDOMStructure();
 
-    // Step 3: Get core services
-    this.eventBus = this.container.get("eventBus");
-    this.shapeRegistry = this.container.get("shapeRegistry");
+    // Step 2: Setup dependency injection container
+    this._setupServiceContainer();
 
-    // Step 4: Load built-in shapes
-    ShapeLoader.loadBuiltInShapes(this.shapeRegistry);
+    // Step 3: Load built-in shapes
+    await this._loadShapes();
 
-    // Step 5: Setup UI components (now shapeRegistry has shapes)
-    this.setupUI();
+    // Step 4: Initialize UI components
+    this._setupUI();
 
-    // Step 6: Get remaining services
-    this.editor = this.container.get("editor");
-    this.nodeManager = this.container.get("nodeManager");
-    this.edgeManager = this.container.get("edgeManager");
-    this.selectionManager = this.container.get("selectionManager");
-    this.historyManager = this.container.get("historyManager");
+    // Step 5: Setup event handlers and connections
+    this._setupEventHandlers();
 
-    // Step 7: Setup event handlers
-    this.setupEventHandlers();
+    // Step 6: Initialize workspace
+    this._initializeWorkspace();
 
-    console.log("Flowchart Editor initialized");
+    console.log("✅ Flowchart Editor initialized successfully");
+    return this;
   }
 
-  createDOMStructure() {
+  /**
+   * Create the DOM structure for the application
+   */
+  _createDOMStructure() {
     const appContainer = document.getElementById("app");
-    if (!appContainer) {
-      console.error("App container not found");
-      return;
-    }
-
-    // Create main layout
     appContainer.innerHTML = `
-      <div class="app-layout">
-        <div id="toolbar-container"></div>
+      <div class="flowchart-editor-container">
+        <!-- Menu Bar -->
+        <div id="menu-bar" class="menu-bar"></div>
+
+        <!-- Main Content Area -->
         <div class="main-content">
-          <div id="left-panel-container"></div>
-          <div id="editor-container"></div>
-          <div id="right-panel-container"></div>
+          <!-- Left Palette -->
+          <div id="left-panel" class="side-panel left-panel">
+            <div class="panel-header">Shapes</div>
+            <div id="shape-palette" class="shape-palette"></div>
+          </div>
+
+          <!-- Editor Area -->
+          <div class="editor-area">
+            <!-- Tool Bar -->
+            <div id="tool-bar" class="tool-bar"></div>
+
+            <!-- Editor Canvas -->
+            <div id="editor-container" class="editor-container">
+              <svg id="editor-svg" class="editor-svg"></svg>
+            </div>
+
+            <!-- Mini Map -->
+            <div id="mini-map" class="mini-map"></div>
+          </div>
+
+          <!-- Right Inspector -->
+          <div id="right-panel" class="side-panel right-panel">
+            <div class="panel-tabs">
+              <button class="tab-button active" data-tab="inspector">Inspector</button>
+              <button class="tab-button" data-tab="layers">Layers</button>
+            </div>
+            <div id="inspector-panel" class="panel-content inspector-panel"></div>
+            <div id="layers-panel" class="panel-content layers-panel" style="display: none;"></div>
+          </div>
         </div>
-        <div id="statusbar-container"></div>
+
+        <!-- Status Bar -->
+        <div id="status-bar" class="status-bar"></div>
+
+        <!-- Context Menu -->
+        <div id="context-menu" class="context-menu" style="display: none;"></div>
+
+        <!-- Dialogs -->
+        <div id="dialogs-container" class="dialogs-container"></div>
       </div>
     `;
   }
 
-  setupUI() {
-    // Render UI components
-    const toolbar = new ToolBar(this.eventBus);
-    document.getElementById("toolbar-container").appendChild(toolbar.render());
+  /**
+   * Setup the dependency injection service container
+   */
+  _setupServiceContainer() {
+    // Register all services
+    ServiceProvider.register(ServiceContainer);
 
-    const leftPalette = new LeftPalette(this.shapeRegistry, this.eventBus);
-    document
-      .getElementById("left-panel-container")
-      .appendChild(leftPalette.render());
+    // Get core services
+    this.eventBus = ServiceContainer.get("eventBus");
+    this.services = ServiceContainer;
 
-    const rightInspector = new RightInspector(this.eventBus);
-    document
-      .getElementById("right-panel-container")
-      .appendChild(rightInspector.render());
-
-    const statusBar = new StatusBar(this.eventBus);
-    document
-      .getElementById("statusbar-container")
-      .appendChild(statusBar.render());
+    console.log("📦 Services registered");
   }
 
-  setupEventHandlers() {
-    // Shape selection from palette
+  /**
+   * Load shapes into the registry
+   */
+  async _loadShapes() {
+    const shapeRegistry = this.services.get("shapeRegistry");
+    ShapeLoader.loadBuiltInShapes(shapeRegistry);
+    console.log("📐 Shapes loaded");
+  }
+
+  /**
+   * Setup all UI components
+   */
+  _setupUI() {
+    // Create and initialize UI components
+    this.ui.menuBar = new MenuBar(
+      document.getElementById("menu-bar"),
+      this.services,
+      this.eventBus
+    );
+
+    this.ui.toolBar = new ToolBar(
+      document.getElementById("tool-bar"),
+      this.services,
+      this.eventBus
+    );
+
+    this.ui.leftPalette = new LeftPalette(
+      document.getElementById("shape-palette"),
+      this.services,
+      this.eventBus
+    );
+
+    this.ui.rightInspector = new RightInspector(
+      document.getElementById("inspector-panel"),
+      this.services,
+      this.eventBus
+    );
+
+    this.ui.layersPanel = new LayersPanel(
+      document.getElementById("layers-panel"),
+      this.services,
+      this.eventBus
+    );
+
+    this.ui.statusBar = new StatusBar(
+      document.getElementById("status-bar"),
+      this.services,
+      this.eventBus
+    );
+
+    this.ui.miniMap = new MiniMap(
+      document.getElementById("mini-map"),
+      this.services,
+      this.eventBus
+    );
+
+    // Initialize editors
+    this.editor = this.services.get("editor");
+    this.editor.initialize(document.getElementById("editor-svg"));
+
+    // Get manager instances
+    this.managers = {
+      node: this.services.get("nodeManager"),
+      edge: this.services.get("edgeManager"),
+      selection: this.services.get("selectionManager"),
+      history: this.services.get("historyManager"),
+      clipboard: this.services.get("clipboardManager"),
+      snap: this.services.get("snapManager"),
+      validation: this.services.get("validationManager"),
+      theme: this.services.get("themeManager"),
+      export: this.services.get("exportManager"),
+      plugin: this.services.get("pluginManager"),
+      layer: this.services.get("layerManager"),
+    };
+
+    this.stateManager = this.services.get("stateManager");
+
+    console.log("🎨 UI components initialized");
+  }
+
+  /**
+   * Setup event handlers and inter-component communication
+   */
+  _setupEventHandlers() {
+    // Handle shape selection from palette
     this.eventBus.on("shape:selected", (data) => {
-      console.log("Shape selected:", data.type);
-      // Set mode to drawing
-      this.container.get("stateManager").setMode("draw");
-      this.container.get("stateManager").setTool(data.type);
+      this.stateManager.setMode("draw");
+      this.stateManager.setTool(data.type);
+      console.log(`📌 Drawing mode: ${data.type}`);
     });
 
-    // Canvas click to create node
-    const editorContainer = document.getElementById("editor-container");
-    if (editorContainer) {
-      editorContainer.addEventListener("click", (e) => {
-        const mode = this.container.get("stateManager").getMode();
-        const tool = this.container.get("stateManager").getTool();
-
-        if (mode === "draw" && tool) {
-          const rect = editorContainer.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          this.nodeManager.createNode(tool, x, y);
-
-          // Reset to select mode
-          this.container.get("stateManager").setMode("select");
-          this.container.get("stateManager").setTool(null);
-        }
-      });
-
-      // Handle drag and drop from palette
-      editorContainer.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "copy";
-      });
-
-      editorContainer.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const shapeType = e.dataTransfer.getData("shape-type");
-        if (shapeType) {
-          const rect = editorContainer.getBoundingClientRect();
-          const x = e.clientX - rect.left;
-          const y = e.clientY - rect.top;
-
-          this.nodeManager.createNode(shapeType, x, y);
-        }
-      });
-    }
-
-    // Tool selection
-    this.eventBus.on("tool:selected", (data) => {
-      switch (data.tool) {
-        case "select":
-          this.container.get("stateManager").setMode("select");
-          break;
-        case "pan":
-          this.container.get("stateManager").setMode("pan");
-          break;
-        case "zoom-in":
-          this.zoomIn();
-          break;
-        case "zoom-out":
-          this.zoomOut();
-          break;
-        case "undo":
-          this.historyManager.undo();
-          break;
-        case "redo":
-          this.historyManager.redo();
-          break;
-      }
-    });
-
-    // Node events
+    // Handle node creation
     this.eventBus.on("node:created", (node) => {
-      console.log("Node created:", node.id);
+      this.ui.layersPanel.addNodeLayer(node);
+      this.ui.miniMap.updateCanvas();
+      this.ui.statusBar.setMessage(`Node created: ${node.id}`);
     });
 
-    this.eventBus.on("node:drag:move", (node) => {
-      // Update connected edges
-      this.edgeManager.updateEdgesForNode(node.id);
+    // Handle node selection
+    this.eventBus.on("node:selected", (node) => {
+      this.ui.rightInspector.displayNodeProperties(node);
+      this.ui.statusBar.updateSelectionCount(1);
     });
 
-    // Connection events
-    this.eventBus.on("connection:complete", (data) => {
-      this.edgeManager.createEdge(data.sourceId, data.targetId, {
-        sourcePort: data.sourcePort,
-        targetPort: data.targetPort,
-      });
+    // Handle edge creation
+    this.eventBus.on("edge:created", (edge) => {
+      this.ui.miniMap.updateCanvas();
+      this.ui.statusBar.setMessage(`Connection created: ${edge.id}`);
     });
 
-    // Keyboard shortcuts
+    // Handle selection changes
+    this.eventBus.on("selection:changed", (selection) => {
+      const count = selection.nodes.size + selection.edges.size;
+      this.ui.statusBar.updateSelectionCount(count);
+    });
+
+    // Handle deletion
+    this.eventBus.on("elements:deleted", () => {
+      this.ui.miniMap.updateCanvas();
+      this.ui.layersPanel.refresh();
+    });
+
+    // Handle pan/zoom changes
+    this.eventBus.on("viewport:changed", (viewport) => {
+      this.ui.statusBar.setZoom(viewport.zoom);
+      this.ui.miniMap.updateViewport(viewport);
+    });
+
+    // Handle theme changes
+    this.eventBus.on("theme:changed", (theme) => {
+      this.managers.theme.applyTheme(theme);
+      this.ui.miniMap.updateCanvas();
+    });
+
+    console.log("🔗 Event handlers connected");
+  }
+
+  /**
+   * Initialize the workspace with default settings
+   */
+  _initializeWorkspace() {
+    // Set default theme
+    this.managers.theme.setTheme("light");
+
+    // Setup grid and snap
+    this.managers.snap.setGridSize(20);
+    this.managers.snap.setSnapThreshold(5);
+
+    // Initialize viewport
+    this.editor.setViewport({
+      x: 0,
+      y: 0,
+      zoom: 1,
+    });
+
+    // Setup keyboard shortcuts
+    this._setupKeyboardShortcuts();
+
+    console.log("⚙️ Workspace initialized");
+  }
+
+  /**
+   * Setup global keyboard shortcuts
+   */
+  _setupKeyboardShortcuts() {
     document.addEventListener("keydown", (e) => {
-      // Ctrl/Cmd + Z for undo
-      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
+      // Ctrl/Cmd + Z: Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         e.preventDefault();
-        this.historyManager.undo();
+        this.managers.history.undo();
       }
-      // Ctrl/Cmd + Shift + Z for redo
-      if ((e.ctrlKey || e.metaKey) && e.key === "z" && e.shiftKey) {
+
+      // Ctrl/Cmd + Y: Redo
+      if ((e.ctrlKey || e.metaKey) && e.key === "y") {
         e.preventDefault();
-        this.historyManager.redo();
+        this.managers.history.redo();
       }
-      // Ctrl/Cmd + C for copy
+
+      // Ctrl/Cmd + C: Copy
       if ((e.ctrlKey || e.metaKey) && e.key === "c") {
         e.preventDefault();
-        this.copy();
+        this.managers.clipboard.copy();
       }
-      // Ctrl/Cmd + V for paste
-      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
-        e.preventDefault();
-        this.paste();
-      }
-      // Ctrl/Cmd + X for cut
+
+      // Ctrl/Cmd + X: Cut
       if ((e.ctrlKey || e.metaKey) && e.key === "x") {
         e.preventDefault();
-        this.cut();
+        this.managers.clipboard.cut();
       }
-      // Delete key
+
+      // Ctrl/Cmd + V: Paste
+      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+        e.preventDefault();
+        this.managers.clipboard.paste();
+      }
+
+      // Delete: Remove selected
       if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
-        this.deleteSelected();
+        const selection = this.stateManager.getState().selection;
+        this.managers.node.removeNodes([...selection.nodes]);
+        this.managers.edge.removeEdges([...selection.edges]);
       }
-      // Ctrl/Cmd + A for select all
+
+      // Ctrl/Cmd + A: Select all
       if ((e.ctrlKey || e.metaKey) && e.key === "a") {
         e.preventDefault();
-        this.selectAll();
+        const nodes = this.managers.node.getAllNodes();
+        const edges = this.managers.edge.getAllEdges();
+        this.managers.selection.selectNodes([...nodes.values()]);
+        this.managers.selection.selectEdges([...edges.values()]);
       }
     });
   }
 
-  zoomIn() {
-    const viewport = this.container.get("stateManager").getViewport();
-    const newZoom = Math.min(viewport.zoom * 1.2, 3);
-    this.editor.setViewport(viewport.x, viewport.y, newZoom);
-    this.container
-      .get("stateManager")
-      .setViewport({ ...viewport, zoom: newZoom });
+  /**
+   * Export current diagram
+   */
+  async exportDiagram(format = "json") {
+    return this.managers.export.export(format);
   }
 
-  zoomOut() {
-    const viewport = this.container.get("stateManager").getViewport();
-    const newZoom = Math.max(viewport.zoom / 1.2, 0.1);
-    this.editor.setViewport(viewport.x, viewport.y, newZoom);
-    this.container
-      .get("stateManager")
-      .setViewport({ ...viewport, zoom: newZoom });
+  /**
+   * Import diagram from data
+   */
+  async importDiagram(data, format = "json") {
+    return this.managers.export.import(data, format);
   }
 
-  copy() {
-    const clipboardManager = this.container.get("clipboardManager");
-    const nodes = this.nodeManager.getAllNodes();
-    const edges = this.edgeManager.getAllEdges();
-    clipboardManager.copy(nodes, edges);
-    console.log("Copied to clipboard");
+  /**
+   * Get the state manager
+   */
+  getStateManager() {
+    return this.stateManager;
   }
 
-  paste() {
-    const clipboardManager = this.container.get("clipboardManager");
-    if (clipboardManager.hasClipboard()) {
-      clipboardManager.paste(this.nodeManager, this.edgeManager);
-      console.log("Pasted from clipboard");
-    }
+  /**
+   * Get a specific manager
+   */
+  getManager(name) {
+    return this.managers[name];
   }
 
-  cut() {
-    const clipboardManager = this.container.get("clipboardManager");
-    const nodes = this.nodeManager.getAllNodes();
-    const edges = this.edgeManager.getAllEdges();
-    clipboardManager.cut(nodes, edges, this.nodeManager, this.edgeManager);
-    console.log("Cut to clipboard");
+  /**
+   * Get a service
+   */
+  getService(name) {
+    return this.services.get(name);
   }
 
-  deleteSelected() {
-    const selection = this.selectionManager.getSelection();
-
-    // Delete edges first
-    selection.edges.forEach((edgeId) => {
-      this.edgeManager.removeEdge(edgeId);
-    });
-
-    // Then delete nodes
-    selection.nodes.forEach((nodeId) => {
-      // Also delete connected edges
-      const connectedEdges = this.edgeManager.getEdgesForNode(nodeId);
-      connectedEdges.forEach((edge) => {
-        this.edgeManager.removeEdge(edge.id);
-      });
-      this.nodeManager.removeNode(nodeId);
-    });
-
-    this.selectionManager.clearSelection();
-    console.log("Deleted selected elements");
-  }
-
-  selectAll() {
-    const nodes = this.nodeManager.getAllNodes();
-    const edges = this.edgeManager.getAllEdges();
-    this.selectionManager.selectAll(nodes, edges);
-    console.log("Selected all elements");
-  }
-
-  // Public API methods
-  save() {
-    const exportManager = this.container.get("exportManager");
-    const nodes = this.nodeManager.getAllNodes();
-    const edges = this.edgeManager.getAllEdges();
-    const json = exportManager.exportAsJSON(nodes, edges);
-    return json;
-  }
-
-  load(jsonString) {
-    const exportManager = this.container.get("exportManager");
-
-    // Clear current diagram
-    this.nodeManager.clear();
-    this.edgeManager.clear();
-
-    // Import from JSON
-    exportManager.importFromJSON(
-      jsonString,
-      this.nodeManager,
-      this.edgeManager
-    );
-  }
-
-  export(format = "json") {
-    const exportManager = this.container.get("exportManager");
-    const nodes = this.nodeManager.getAllNodes();
-    const edges = this.edgeManager.getAllEdges();
-
-    switch (format) {
-      case "json":
-        return exportManager.exportAsJSON(nodes, edges);
-      case "svg":
-        return exportManager.exportAsSVG(this.editor.getSVG());
-      case "png":
-        return exportManager.exportAsPNG(this.editor.getSVG(), 1920, 1080);
-      default:
-        throw new Error(`Unknown export format: ${format}`);
-    }
-  }
-
-  clear() {
-    this.nodeManager.clear();
-    this.edgeManager.clear();
-    this.selectionManager.clearSelection();
-    this.historyManager.clear();
+  /**
+   * Register a plugin
+   */
+  registerPlugin(plugin) {
+    return this.managers.plugin.register(plugin);
   }
 }
 
-// Initialize app when DOM is ready
-if (typeof document !== "undefined") {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => {
-      window.flowchartApp = new FlowchartApp();
-    });
-  } else {
-    window.flowchartApp = new FlowchartApp();
-  }
-}
+// Initialize the application when DOM is ready
+document.addEventListener("DOMContentLoaded", async () => {
+  const app = new FlowchartApp();
+  await app.initialize();
+  window.flowchartApp = app; // Expose for debugging
+});
 
-export default FlowchartApp;
+export { FlowchartApp };

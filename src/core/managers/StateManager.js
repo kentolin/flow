@@ -1,40 +1,77 @@
-// ============================================================================
-// FILE: src/core/managers/StateManager.js
-// ============================================================================
-export class StateManager {
+/**
+ * StateManager - Provides mutations for EditorState
+ * Implements immutable updates and event emissions
+ */
+class StateManager {
   constructor(editorState) {
-    this.editorState = editorState;
+    this.state = editorState;
   }
 
+  /**
+   * Get current state
+   */
   getState() {
-    return this.editorState.getState();
+    return this.state.getState();
   }
 
-  setState(updates) {
-    this.editorState.setState(updates);
-  }
-
+  /**
+   * Set editor mode
+   */
   setMode(mode) {
-    this.setState({ mode });
+    this.state.setProperty("mode", mode);
   }
 
+  /**
+   * Set drawing tool
+   */
   setTool(tool) {
-    this.setState({ tool });
+    this.state.setProperty("tool", tool);
   }
 
+  /**
+   * Set viewport
+   */
   setViewport(viewport) {
-    this.editorState.setViewport(viewport);
+    this.state.setViewport(viewport);
   }
 
-  getViewport() {
-    return this.getState().viewport;
+  /**
+   * Set theme
+   */
+  setTheme(theme) {
+    this.state.setProperty("theme", theme);
   }
 
-  getMode() {
-    return this.getState().mode;
+  /**
+   * Set grid settings
+   */
+  setGrid(enabled, size, visible) {
+    this.state.setProperty("grid", { enabled, size, visible });
   }
 
-  getTool() {
-    return this.getState().tool;
+  /**
+   * Set clipboard
+   */
+  setClipboard(data, type) {
+    this.state.setProperty("clipboard", { data, type });
+  }
+
+  /**
+   * Add to undo stack
+   */
+  pushUndo(command) {
+    this.getState().history.undoStack.push(command);
+    this.getState().history.redoStack = []; // Clear redo on new action
+  }
+
+  /**
+   * Set metadata
+   */
+  setMetadata(metadata) {
+    this.state.setProperty("metadata", {
+      ...this.getState().metadata,
+      ...metadata,
+    });
   }
 }
+export { StateManager };
